@@ -1,0 +1,78 @@
+body {
+    font-family: Verdana,Arial,sans-serif;
+}
+
+#sliderContainer {
+    position:relative;
+    width:300px;
+    z-index:15;
+}
+
+#chart {
+    height: 620px;
+    margin: 0 auto;
+    position: relative;
+
+    width: 800px;
+}
+
+#parc {
+
+}
+
+.tooltip {
+
+    background: #eee;
+    box-shadow: 0 0 5px #999999;
+    color: #333;
+
+    display: none;
+    opacity: 1;
+    font-size: 12px;
+    left: 130px;
+    padding: 10px;
+    position: absolute;
+    text-align: left;
+    top: 95px;
+    width: 200px;
+    z-index: 10;
+}
+
+#classContribSlider {
+    height: 10px;
+    width: 300px;
+
+    /*left: -.25em;*/
+
+    margin-left: 0;
+    margin-bottom: -.6em;
+
+}
+
+.brush .extent {
+    stroke: #000;
+    stroke-width: 1.5px;
+    fill: #000;
+    fill-opacity: 0.1;
+}
+
+.legendRect {
+    x: 5px;
+    width: 20px;
+    height: 20px;
+    rx: 5px;
+    ry: 5px;
+}
+
+.legendText {
+    width: 80px;
+    height: 20px;
+//text-align: left;
+    font-size: 12px;
+}
+
+circle.selected {
+//fill: red;
+    stroke: black;
+    stroke-width: 2;
+}

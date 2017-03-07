@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Dual Radviz</title>
+
+    </head>
+    <body onload="startRadviz()">
+
+    <div class="inputContainer">
+        <label>Choose file to visualize</label>
+        <br/>
+        <input id="fileName" name="fileName" type="file" accept="text/csv,text/comma-separated-values,text/tab-separated-values,text/plain,.csv,.tsv"
+        onchange="handleFile(this.files)"/>
+
+    </div>
+        <div style="margin:auto;">
+            <div style="float:left; ">
+
+                <div id="classContribSlider" style="margin:auto;">
+                    <br/>
+                    <h4 style="margin: 0 auto;"> <span id="contribution">Class: 50% / Attributes: 50%</span></h4>
+
+                </div>
+
+                <br/>
+                <br/>
+                <div id="chart"></div>
+                <div id="attrCircles"></div>
+                <div id="instanceCircles"></div>
+            </div>
+            <div id="sliderContainer" style="float:left; ">
+
+                <br/>
+                <div id="parc" class="parcoords" style="width:650px;height:350px; "></div >
+            </div>
+        </div>
+
+
+        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <script type="text/javascript" src="d3.slider.js"></script>
+        <script type="text/javascript" src="d3.parcoords.js"></script>
+        <script type="text/javascript" src="polybrush.js"></script>
+
+        <script type="text/javascript" src="da.js"></script>
+        <script type="text/javascript" src="rvCircle.js"></script>
+        <script type="text/javascript" src="legend.js"></script>
+        <script type="text/javascript" src="dragManager.js"></script>
+        <script type="text/javascript" src="tooltipManager.js"></script>
+        <script type="text/javascript" src="loadFile.js"></script>
+
+        <link rel="stylesheet" href="d3.parcoords.css" />
+        <link rel="stylesheet" href="d3.slider.css" />
+        <link rel="stylesheet" href="styles.css" />
+
+
+
+        <script>
+
+            var svgWidth = 800;
+            var svgHeight = 620;
+            var color = d3.scale.category10();
+
+            var useClass = true;
+
+            var pi = Math.PI;
+            var twoPi = pi * 2;
+            var arc;
+
+            var shitfPressed = false;
+            var colorAll = true;
+            var svgContainer;
+
+            var daPositions = [];
+            var labelPositions = [];
+
+            var headers = [];
+
+            var classIndex;
+
+            var headersClass = [];
+            var classNames = [];
+            var parcoords;
+            var csv;
+            var contribSlider;
+
+            svgContainer = d3.select("#chart")
+                    .append("svg:svg")
+                    .attr("width", svgWidth)
+                    .attr("height", svgHeight)
+                    //.style("border", "1px solid black")
+                    .attr("transform", "translate(0,0)");
+
+            function destroyCurrent(){
+                svgContainer.selectAll("*").remove();
+
+                color = d3.scale.category10();
+
+                d3.selectAll("#parc").remove();
+                d3.selectAll("#sliderContainer").append("div")
+                        .attr("id", "parc")
+                        .attr("class", "parcoords")
+                        .style("width","650px")
+                        .style("height","350px");
+
+
+            }
+
+            function startRadviz(fileName) {
+
+                if(fileName == undefined) {
+                    //fileName = "iris madeup.csv";
+                    fileName = "iris naive bayes.csv";
+
+                }
+
+                d3.select("body")
+                        .on("keydown", function () {
+                            shitfPressed = d3.event.shiftKey;
+                            if (d3.event.char == "c".charCodeAt(0)) {
+                                rvInst.instGroup.selectAll(".selected").classed("selected", false);
+                            }
+                        })
+                        .on("keyup", function () {
+                            shitfPressed = d3.event.shiftKey;
+                        })
+
+                // SETUP BRUSH
+                function setupBrush(csv) {
+                    var brush = d3.svg.polybrush()
+                            .x(d3.scale.linear().range([0, svgWidth]))
+                            .y(d3.scale.linear().range([0, svgHeight]))
+
+                            .on("brush", function () {
+                                // set the 'selected' class for the circle
+
+                                rvInst.instGroup.selectAll("circle").classed("selected", function (d) {
+
+                                    var x = d3.select(this).attr("cx");
+                                    var y = d3.select(this).attr("cy");
+
+                                    if (brush.isWithinExtent(x, y)) {
+                                        d3.select(this).classed("selected", true);
+                                        d.mouseOver = 1;
+
+                                        return true;
+                                    } else {
+                                        d3.select(this).classed("selected", false);
+                                        d.mouseOver = 0;
+
+                                    }
+
+                                });
+                                colorAll = false;
+                                parcoords.data(csv).alpha(1).render();
+                            });
+
+                    svgContainer.append("g")
+                            .attr("class", "brush")
+                            .call(brush);
+
+                }
+
+                rvInst = new RvCircle();
+                rvInst.x = svgWidth / 2;
+                rvInst.y = svgHeight / 2;
+                rvInst.r = 210;
+                rvInst.color = "mediumSlateBlue";
+                rvInst.thickness = 4;
+                rvInst.contribution = 1;
+
+                rvClass = new RvCircle();
+                rvClass.x = svgWidth / 2;
+                rvClass.y = svgHeight / 2;
+                rvClass.r = 270;
+                rvClass.instanceRadius = rvInst.r;
+                rvClass.color = "coral";
+                rvClass.thickness = 4;
+                rvClass.contribution = 1;
+
+                rvInst.createPath();
+
+                console.log(fileName);
+
+                d3.csv(fileName, function (csv) {
+                    //console.log(err);
+                    daPositions = [];
+                    labelPositions = [];
+                    headers = d3.entries(csv[0]);
+
+                    classIndex = headers.indexOf("class");
+                    for (var i = 0; i < headers.length; i++) {
+                        if (headers[i].key.toString() == "class") {
+                            classIndex = i;
+                            break;
+                        }
+                    }
+
+                    setupBrush(csv);
+
+                    headers = headers.slice(0, classIndex);
+                    rvInst.initializeDaInfo(headers, csv);
+                    rvInst.createDaGroup();
+                    rvInst.initializeInstGroup(csv);
+
+                    rvClass.createPath();
+                    headersClass = d3.entries(csv[0]);
+                    headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
+
+                    rvClass.initializeDaInfo(headersClass, csv);
+
+                    classNames = [];
+
+                    for (var i = 0; i < rvClass.da.length; i++) {
+                        var keyName = rvClass.da[i].key;
+                        keyName = keyName.replace("confidence(", "").replace(")", "");
+                        //console.log(keyName);
+                        classNames[i] = keyName;
+                        rvClass.da[i].color = color(keyName);
+                    }
+                    csv = csv.map(function (d) {
+                        d.mouseOver = "false";
+                        return d;
+                    });
+                    //console.log(csv);
+
+                    rvClass.createDaGroup();
+
+                    rvInst.updateInst(false);
+
+                    setupTooltip(headers, headersClass, csv);
+
+                    showLegend(classNames, svgContainer);
+                    setupDragBehaviour(rvInst, rvClass);
+
+                    if (contribSlider == undefined) {
+                        contribSlider = d3.slider().min(-100).max(100).value(0.00000001)
+                                .on("slide", function (evt, value) {
+                                    rvClass.contribution = 1 - value / 100;
+                                    rvInst.contribution = 1 + value / 100;
+
+                                    var cContr = rvClass.contribution / (rvClass.contribution + rvInst.contribution);
+                                    var aContr = rvInst.contribution / (rvClass.contribution + rvInst.contribution);
+
+                                    d3.select("#contribution")
+                                            .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
+
+                                    rvInst.updateInst(true);
+                                });
+                        d3.select("#classContribSlider").call(contribSlider);
+                    }
+
+
+
+                });
+
+            }
+        </script>
+    </body>
+</html>

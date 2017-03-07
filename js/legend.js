@@ -11,7 +11,7 @@ showLegend = function(classNames, svgContainer) {
         .attr("y", function(d, i) {
             return 30 + 30*i
         })
-        .style("fill", function(d){return color(d)});
+        .style("fill", function(d){return color(d)})
 
     svgContainer.selectAll("legendText")
         .data(classNames)
@@ -24,4 +24,3 @@ showLegend = function(classNames, svgContainer) {
         })
         .text(function(d){ return d;})
 }
-

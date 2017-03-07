@@ -141,8 +141,8 @@ function RvCircle(){
             })
             .attr("cy", function(d, i){return getInstancePosition(d)[1];
             })
-            .attr("opacity",.7)
-            .attr("r", 3.5)
+            .attr("opacity",.5)
+            .attr("r", 3)
             //.style("opacity",function(d){return o(+d.sepal_width);});
             .attr("fill",function(d){return color(d.class);});
     }

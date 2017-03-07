@@ -88,7 +88,7 @@
                     .append("svg:svg")
                     .attr("width", svgWidth)
                     .attr("height", svgHeight)
-                    //.style("border", "1px solid black")
+                    .style("border", "1px solid black")
                     .attr("transform", "translate(0,0)");
 
             function destroyCurrent(){
@@ -164,18 +164,18 @@
                 rvInst = new RvCircle();
                 rvInst.x = svgWidth / 2;
                 rvInst.y = svgHeight / 2;
-                rvInst.r = 210;
+                rvInst.r = 230;
                 rvInst.color = "mediumSlateBlue";
-                rvInst.thickness = 4;
+                rvInst.thickness = 2;
                 rvInst.contribution = 1;
 
                 rvClass = new RvCircle();
                 rvClass.x = svgWidth / 2;
                 rvClass.y = svgHeight / 2;
-                rvClass.r = 270;
+                rvClass.r = 290;
                 rvClass.instanceRadius = rvInst.r;
                 rvClass.color = "coral";
-                rvClass.thickness = 4;
+                rvClass.thickness = 2;
                 rvClass.contribution = 1;
 
                 rvInst.createPath();

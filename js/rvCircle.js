@@ -15,7 +15,7 @@ function RvCircle(){
     this.daLabelGroup;
     this.contribution;
     this.dragging = false;
-    this. arc = 0;
+    this.arc = 0;
     this.createPath = function() {
         arc = d3.svg.arc()
             .innerRadius(this.r)
@@ -84,6 +84,7 @@ function RvCircle(){
 
         return this.r;
     }
+
     this.createDaGroup = function() {
         this.daGroup = svgContainer.append("g");
         this.daGroup.selectAll("circle")
@@ -139,12 +140,14 @@ function RvCircle(){
             .attr("cx", function(d, i){
                 return getInstancePosition(d)[0];
             })
-            .attr("cy", function(d, i){return getInstancePosition(d)[1];
+            .attr("cy", function(d, i){
+                return getInstancePosition(d)[1];
             })
             .attr("opacity",.5)
             .attr("r", 3)
             //.style("opacity",function(d){return o(+d.sepal_width);});
             .attr("fill",function(d){return color(d.class);});
+            //console.log("inst update")
     }
 
 }

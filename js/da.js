@@ -19,8 +19,12 @@ function Da(){
         //console.log(super);
         var arc = this.arc + rv.arc;
 
+        //this.x = rv.x + Math.cos(arc) * (rv.r + this.r/2);
+        //this.y = rv.y + Math.sin(arc) * -(rv.r + this.r/2);
+
         this.x = rv.x + Math.cos(arc) * (rv.r + this.r/2);
         this.y = rv.y + Math.sin(arc) * -(rv.r + this.r/2);
+
 
         this.labelX = rv.x +  Math.cos(arc) * (rv.r + this.r);
         this.labelY = (rv.y - (Math.sin(arc) * (rv.r + this.r))) - 15;
@@ -28,7 +32,7 @@ function Da(){
         //*/
         this.scaledX = rv.x + Math.cos(arc) * (rv.getScaledR() - this.r/2);
         this.scaledY = rv.y + (Math.sin(arc) * -(rv.getScaledR() - this.r/2));
-
+        //console.log("updateBasedOnNewArc")
     }
 
     this.getInfo = function(){
@@ -36,4 +40,3 @@ function Da(){
             "pos: " + [this.x, this.y] + "\n" +
             "labelPos: " + [this.labelX, this.labelY] + "\n"; }
 }
-

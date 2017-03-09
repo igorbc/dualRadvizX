@@ -13,25 +13,26 @@ function Da(){
     this.key;
     this.arc;
     this.color;
-    this.r;
+    this.radiusSize;
+    this.distFromOrigin;
 
-    this.updateBasedOnNewArc = function(rv) {
+    this.updateBasedOnNewArc = function(rv, mag) {
         //console.log(super);
         var arc = this.arc + rv.arc;
 
         //this.x = rv.x + Math.cos(arc) * (rv.r + this.r/2);
         //this.y = rv.y + Math.sin(arc) * -(rv.r + this.r/2);
 
-        this.x = rv.x + Math.cos(arc) * (rv.r + this.r/2);
-        this.y = rv.y + Math.sin(arc) * -(rv.r + this.r/2);
+        this.x = rv.x + Math.cos(arc) * (this.distFromOrigin + this.radiusSize/2);
+        this.y = rv.y + Math.sin(arc) * -(this.distFromOrigin + this.radiusSize/2);
 
 
-        this.labelX = rv.x +  Math.cos(arc) * (rv.r + this.r);
-        this.labelY = (rv.y - (Math.sin(arc) * (rv.r + this.r))) - 15;
+        this.labelX = rv.x +  Math.cos(arc) * (this.distFromOrigin + this.radiusSize);
+        this.labelY = (rv.y - (Math.sin(arc) * (this.distFromOrigin + this.radiusSize))) - 15;
 
         //*/
-        this.scaledX = rv.x + Math.cos(arc) * (rv.getScaledR() - this.r/2);
-        this.scaledY = rv.y + (Math.sin(arc) * -(rv.getScaledR() - this.r/2));
+        this.scaledX = rv.x + Math.cos(arc) * (rv.getScaledR() - this.radiusSize/2);
+        this.scaledY = rv.y + (Math.sin(arc) * -(rv.getScaledR() - this.radiusSize/2));
         //console.log("updateBasedOnNewArc")
     }
 

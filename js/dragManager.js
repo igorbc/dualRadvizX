@@ -64,7 +64,8 @@ setupDragBehaviour = function(rvInst, rvClass) {
 */
     rvInst.daGroup.selectAll("circle").call(dragInst);
     rvInst.daLabelGroup.selectAll("circle").call(dragInst);
-    rvClass.daGroup.selectAll("circle").call(dragClass);
+
+    //rvClass.daGroup.selectAll("circle").call(dragClass);
 }
 
 createDragBehaviour = function(rv, circle, i) {
@@ -92,10 +93,13 @@ createDragBehaviour = function(rv, circle, i) {
         //da[i].arc += arcDiff;
         //da[i].updateBasedOnNewArc(rv);
 
+        da[i].distFromOrigin = mag;
+        da[i].arc += arcDiff;
+        //console.log(da[i].distFromOrigin);
         d3.select(circle)
             .attr("cx", da[i].x)
             .attr("cy", da[i].y);
-            //console.log(x + y)
+
     }
 
     else {
@@ -108,9 +112,12 @@ createDragBehaviour = function(rv, circle, i) {
         rv.daGroup.selectAll("circle")
             .attr("cx", function(d, i) {return da[i].x;})
             .attr("cy", function(d, i) {return da[i].y;});
-        console.log("move whole group")
+        //console.log("move whole group")
     }
 
+    rv.daGroup.selectAll("line")
+        .attr("x2", function(d, i) {return da[i].x;})
+        .attr("y2", function(d, i) {return da[i].y;})
 
     rv.daLabelGroup.selectAll("text")
         .attr("x", function(d, i) {return da[i].labelX;})

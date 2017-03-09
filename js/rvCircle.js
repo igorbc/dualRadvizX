@@ -7,7 +7,7 @@ function RvCircle(){
     this.x;
     this.y;
     this.r;
-    this.instanceRadius;
+    this.rvInstRadius;
     this.thickness;
     this.color;
     this.da = [];
@@ -41,23 +41,24 @@ function RvCircle(){
             unscaledY = -Math.sin(thisDa.arc);
 
             thisDa.key = headers[i].key.toString();
-            thisDa.r = 7;
+            thisDa.radiusSize = 7;
+            thisDa.distFromOrigin = rvInst.r;
 
-            thisDa.x = this.x + unscaledX * (this.r + thisDa.r/2);
-            thisDa.y = this.y + unscaledY * (this.r + thisDa.r/2);
+            thisDa.x = this.x + unscaledX * (this.r + thisDa.radiusSize/2);
+            thisDa.y = this.y + unscaledY * (this.r + thisDa.radiusSize/2);
 
-            thisDa.labelX = this.x + unscaledX * (this.r + thisDa.r);
-            thisDa.labelY = (this.y + unscaledY * (this.r + thisDa.r)) - 15;
+            thisDa.labelX = this.x + unscaledX * (this.r + thisDa.radiusSize);
+            thisDa.labelY = (this.y + unscaledY * (this.r + thisDa.radiusSize)) - 15;
 
             //console.log(this.instanceRadius);
 
-            if (this.instanceRadius !== undefined) {
-                thisDa.scaledX = this.x + unscaledX * (this.instanceRadius - thisDa.r/2);
-                thisDa.scaledY = this.y + unscaledY * (this.instanceRadius - thisDa.r/2);
+            if (this.rvInstRadius !== undefined) {
+                thisDa.scaledX = this.x + unscaledX * (this.rvInstRadius - thisDa.radiusSize/2);
+                thisDa.scaledY = this.y + unscaledY * (this.rvInstRadius - thisDa.radiusSize/2);
             }
             else {
-                thisDa.scaledX = this.x + unscaledX * (this.r - thisDa.r/2);
-                thisDa.scaledY = this.y + unscaledY * (this.r - thisDa.r/2);
+                thisDa.scaledX = this.x + unscaledX * (this.r - thisDa.radiusSize/2);
+                thisDa.scaledY = this.y + unscaledY * (this.r - thisDa.radiusSize/2);
             }
 
             thisDa.color = "white";
@@ -77,9 +78,9 @@ function RvCircle(){
 
     this.getScaledR = function(){
 
-        if (this.instanceRadius !== undefined) {
+        if (this.rvInstRadius !== undefined) {
 
-            return this.instanceRadius;
+            return this.rvInstRadius;
         }
 
         return this.r;
@@ -87,13 +88,24 @@ function RvCircle(){
 
     this.createDaGroup = function() {
         this.daGroup = svgContainer.append("g");
+
+        this.daGroup.selectAll("line")
+            .data(this.da)
+            .enter()
+            .append("line")          // attach a line
+            .style("stroke", "gray")  // colour the line
+            .attr("x1", this.x)     // x position of the first end of the line
+            .attr("y1", this.y)      // y position of the first end of the line
+            .attr("x2", function(d){ return d.x;})     // x position of the second end of the line
+            .attr("y2", function(d){ return d.y;});
+
         this.daGroup.selectAll("circle")
             .data(this.da)
             .enter()
             .append("circle")
             .attr("cx", function(d){ return d.x;})
             .attr("cy", function(d){ return d.y;})
-            .attr("r", function(d){ return d.r;})
+            .attr("r", function(d){ return d.radiusSize;})
             .attr("fill",function(d){ return d.color;})
             .attr("stroke","black")
             .attr("stroke-width", 2);
@@ -143,8 +155,8 @@ function RvCircle(){
             .attr("cy", function(d, i){
                 return getInstancePosition(d)[1];
             })
-            .attr("opacity",.5)
-            .attr("r", 3)
+            .attr("opacity", instOpacity)
+            .attr("r", instRadius)
             //.style("opacity",function(d){return o(+d.sepal_width);});
             .attr("fill",function(d){return color(d.class);});
             //console.log("inst update")

@@ -19,7 +19,7 @@
 
                 <div id="classContribSlider" style="margin:auto;">
                     <br/>
-                    <h4 style="margin: 0 auto;"> <span id="contribution">Class: 50% / Attributes: 50%</span></h4>
+                    <h4 style="margin: 0 auto;"> <span id="contribution">Class: 0% / Attributes: 100%</span></h4>
 
                 </div>
 
@@ -61,7 +61,18 @@
 
             var svgWidth = 800;
             var svgHeight = 620;
+
+            var rvInstRadius = 130;
+            var rvClassRadius = 130;
+
             var color = d3.scale.category10();
+            /*
+            function color(n) {
+              var colores_g = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6",
+               "#3b3eac"];
+              return colores_g[n % colores_g.length];
+            }
+            */
 
             var useClass = true;
 
@@ -85,6 +96,7 @@
             var parcoords;
             var csv;
             var contribSlider;
+            var radviz = false;
 
             svgContainer = d3.select("#chart")
                     .append("svg:svg")
@@ -112,7 +124,7 @@
 
                 if(fileName == undefined) {
                     //fileName = "iris madeup.csv";
-                    fileName = "db/ecoli.csv";
+                    fileName = "db/iris.csv";
 
                 }
 
@@ -166,7 +178,7 @@
                 rvInst = new RvCircle();
                 rvInst.x = svgWidth / 2;
                 rvInst.y = svgHeight / 2;
-                rvInst.r = 230;
+                rvInst.r = rvInstRadius;
                 rvInst.color = "mediumSlateBlue";
                 rvInst.thickness = 2;
                 rvInst.contribution = 1;
@@ -174,7 +186,7 @@
                 rvClass = new RvCircle();
                 rvClass.x = svgWidth / 2;
                 rvClass.y = svgHeight / 2;
-                rvClass.r = 290;
+                rvClass.r = rvClassRadius;
                 rvClass.rvInstRadius = rvInst.r;
                 rvClass.color = "coral";
                 rvClass.thickness = 2;
@@ -236,7 +248,7 @@
                     setupDragBehaviour(rvInst, rvClass);
 
                     if (contribSlider == undefined) {
-                        contribSlider = d3.slider().min(-100).max(100).value(0.00000001)
+                        contribSlider = d3.slider().min(-100).max(100).value(100)
                                 .on("slide", function (evt, value) {
                                     rvClass.contribution = 1 - value / 100;
                                     rvInst.contribution = 1 + value / 100;
@@ -244,13 +256,17 @@
                                     var cContr = rvClass.contribution / (rvClass.contribution + rvInst.contribution);
                                     var aContr = rvInst.contribution / (rvClass.contribution + rvInst.contribution);
 
+                                    //console.log("class: " + cContr + " inst " + aContr);
+
                                     d3.select("#contribution")
                                             .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
 
                                     rvInst.updateInst(true);
                                 });
+
                         d3.select("#classContribSlider").call(contribSlider);
                     }
+
 
 
 

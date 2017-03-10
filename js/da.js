@@ -42,12 +42,14 @@ function Da(){
     this.updateVirtualPosition = function(rv){
         var normalizedDistanceFromOrigin = this.distFromOrigin/rv.r;
 
-        var virtualScale = 3 / (1 + Math.exp(-3*(normalizedDistanceFromOrigin - 1.23)));
+        var max = 3;
 
+        //var virtualScale = max / (1 + Math.exp(- max *(normalizedDistanceFromOrigin - (1/max * (max + Math.log(max-1))))));
 
         //var virtualScale = normalizedDistanceFromOrigin * normalizedDistanceFromOrigin;
+        var virtualScale = normalizedDistanceFromOrigin
 
-        console.log(virtualScale);
+        //console.log(virtualScale);
 
         this.vx = rv.x + (this.x - rv.x) * virtualScale;
         this.vy = rv.y + (this.y - rv.y) * virtualScale;

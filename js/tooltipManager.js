@@ -13,7 +13,7 @@ setupTooltip = function(headers, headersClass, csv) {
 
     var pc = createParCoords(csv, headers);
     pc.colorAll = true;
-
+/*
     rvInst.instGroup.selectAll("circle").on("mouseover", function (d) {
 
         d.mouseOver = 1;
@@ -51,6 +51,7 @@ setupTooltip = function(headers, headersClass, csv) {
         tooltip.style("top", (y + 10) + "px")
             .style("left", (x + 10) + "px");
     });
+    */
     return pc;
 }
 

@@ -182,33 +182,86 @@ getInstancePosition = function(d) {
     var rv = rvInst;
     var da = rv.da;
 
-    for (var i = 0; i < da.length; i++) {
-        var val = (da[i].inverted)? 1 - da[i].scale(+d[da[i].key]) : da[i].scale(+d[da[i].key]);
+    if(radviz) {
+        for (var i = 0; i < da.length; i++) {
+            var val = (da[i].inverted)? 1 - da[i].scale(+d[da[i].key]) : da[i].scale(+d[da[i].key]);
 
 
 
-        //var val = +d[da[i].key];
-        //console.log(val);
-        somaX = somaX + da[i].vx * val * rv.contribution;
-        somaY = somaY + da[i].vy * val * rv.contribution;
-        somaDenominador = somaDenominador + val * rv.contribution;
+            //var val = +d[da[i].key];
+            //console.log(val);
+            //console.log(da[i].vx - rv.x);
+            somaX = somaX + da[i].vx * val * rv.contribution;
+            somaY = somaY + da[i].vy * val * rv.contribution;
+            somaDenominador = somaDenominador + val * rv.contribution;
+        }
+
+        var rv = rvClass;
+        var da = rv.da;
+
+        for (var i = 0; i < da.length; i++) {
+            var val = da[i].scale(+d[da[i].key]);
+            //var val = +d[da[i].key];
+
+            somaX = somaX + da[i].scaledX * val * rv.contribution;
+            somaY = somaY + da[i].scaledY * val * rv.contribution;
+            somaDenominador = somaDenominador + val * rv.contribution;
+        }
+
+        if (somaDenominador == 0) {
+
+            console.log("denom: " + somaDenominador + " ... " + [somaX / somaDenominador, somaY / somaDenominador])
+        }
+        return [somaX/somaDenominador, somaY/somaDenominador];
+        //return [somaX, somaY];
     }
+    else {
 
-    var rv = rvClass;
-    var da = rv.da;
+        var cContr = rvClass.contribution / (rvClass.contribution + rvInst.contribution);
+        var aContr = rvInst.contribution / (rvClass.contribution + rvInst.contribution);
+        //console.log("class: " + cContr + " inst " + aContr);
 
-    for (var i = 0; i < da.length; i++) {
-        var val = da[i].scale(+d[da[i].key]);
-        //var val = +d[da[i].key];
+        for (var i = 0; i < da.length; i++) {
+            var val = (da[i].inverted)? 1 - da[i].scale(+d[da[i].key]) : da[i].scale(+d[da[i].key]);
 
-        somaX = somaX + da[i].scaledX * val * rv.contribution;
-        somaY = somaY + da[i].scaledY * val * rv.contribution;
-        somaDenominador = somaDenominador + val * rv.contribution;
+            //var val = +d[da[i].key];
+            //console.log(val);
+
+            //console.log((da[i].vx - rv.x)/rv.r);
+
+            //da[i].vx = (da[i].vx - rv.x)/rv.r;
+            //da[i].vy = (da[i].vy - rv.y)/rv.r;
+
+
+
+            somaX = somaX + ((da[i].vx - rv.x)/rv.r) * val * aContr;
+            somaY = somaY + ((da[i].vy - rv.y)/rv.r) * val * aContr;
+            somaDenominador = somaDenominador + val * aContr;
+        }
+//*
+        var rv = rvClass;
+        var da = rv.da;
+
+        for (var i = 0; i < da.length; i++) {
+            var val = da[i].scale(+d[da[i].key]);
+            //var val = +d[da[i].key];
+
+
+            somaX = somaX + ((da[i].scaledX - rv.x)/rv.r) * val * cContr;
+            somaY = somaY + ((da[i].scaledY - rv.y)/rv.r)* val * cContr;
+            somaDenominador = somaDenominador + val * cContr;
+
+        }
+
+      //  somaX = somaX/2;
+      //  somaY = somaY/2;
+//*/
+        if (somaDenominador == 0) {
+
+            console.log("denom: " + somaDenominador + " ... " + [somaX / somaDenominador, somaY / somaDenominador])
+        }
+
+        //console.log("soma x: " + somaX + " rv.r: " + rv.r + " rv.x: " + rv.x + " somax*r: " + somaX*rv.r);
+        return [somaX*rv.r + rv.x, somaY*rv.r + rv.y];
     }
-
-    if (somaDenominador == 0) {
-
-        console.log("denom: " + somaDenominador + " ... " + [somaX / somaDenominador, somaY / somaDenominador])
-    }
-    return [somaX/somaDenominador, somaY/somaDenominador];
 }

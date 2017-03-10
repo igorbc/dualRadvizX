@@ -44,8 +44,9 @@ function RvCircle(){
             thisDa.radiusSize = 7;
             thisDa.distFromOrigin = rvInst.r;
 
-            thisDa.x = this.x + unscaledX * (this.r + thisDa.radiusSize/2);
-            thisDa.y = this.y + unscaledY * (this.r + thisDa.radiusSize/2);
+            thisDa.vx = thisDa.x = this.x + unscaledX * (this.r + thisDa.radiusSize/2);
+            thisDa.vy = thisDa.y = this.y + unscaledY * (this.r + thisDa.radiusSize/2);
+
 
             thisDa.labelX = this.x + unscaledX * (this.r + thisDa.radiusSize);
             thisDa.labelY = (this.y + unscaledY * (this.r + thisDa.radiusSize)) - 15;
@@ -106,9 +107,17 @@ function RvCircle(){
             .attr("cx", function(d){ return d.x;})
             .attr("cy", function(d){ return d.y;})
             .attr("r", function(d){ return d.radiusSize;})
-            .attr("fill",function(d){ return d.color;})
             .attr("stroke","black")
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 2)
+            .attr("fill", function(d){ return d.color;})
+            .on("dblclick", function(d) {
+                if(d.color == "white") d.color = "gray";
+                else d.color = "white";
+                d.inverted = !d.inverted;
+                console.log(d.color + " " + d.inverted + " " + d.key);
+                d3.select(this).style("fill", d.color);
+                rvInst.updateInst(false);
+            });
 
         this.daLabelGroup = svgContainer.append("g");
         this.daLabelGroup.selectAll("text")
@@ -174,11 +183,14 @@ getInstancePosition = function(d) {
     var da = rv.da;
 
     for (var i = 0; i < da.length; i++) {
-        var val = da[i].scale(+d[da[i].key]);
+        var val = (da[i].inverted)? 1 - da[i].scale(+d[da[i].key]) : da[i].scale(+d[da[i].key]);
+
+
+
         //var val = +d[da[i].key];
         //console.log(val);
-        somaX = somaX + da[i].x * val * rv.contribution;
-        somaY = somaY + da[i].y * val * rv.contribution;
+        somaX = somaX + da[i].vx * val * rv.contribution;
+        somaY = somaY + da[i].vy * val * rv.contribution;
         somaDenominador = somaDenominador + val * rv.contribution;
     }
 

@@ -89,12 +89,13 @@ createDragBehaviour = function(rv, circle, i) {
 
     var arcDiff = (Math.atan2(xFromCenter/mag,yFromCenter/mag) - pi/2) - da[i].arc;
 
-    if(shitfPressed) {
+    if(!shitfPressed) {
         //da[i].arc += arcDiff;
         //da[i].updateBasedOnNewArc(rv);
 
         da[i].distFromOrigin = mag;
         da[i].arc += arcDiff;
+        da[i].updateVirtualPosition(rv);
         //console.log(da[i].distFromOrigin);
         d3.select(circle)
             .attr("cx", da[i].x)
@@ -105,7 +106,8 @@ createDragBehaviour = function(rv, circle, i) {
     else {
         for(var daCount = 0; daCount < da.length; daCount++) {
             da[daCount].arc += arcDiff;
-            da[daCount].updateBasedOnNewArc(rv, mag);
+            da[daCount].updateBasedOnNewArc(rv);
+            da[daCount].updateVirtualPosition(rv);
 
         }
 

@@ -3,11 +3,11 @@
  */
 
 function Da(){
-    this.x;
+    this.x; // center in pixels
     this.y;
-    this.scaledX;
+    this.scaledX; // used only in the class circle
     this.scaledY;
-    this.labelX;
+    this.labelX; // in pixels
     this.labelY;
     this.scale;
     this.key;
@@ -44,12 +44,12 @@ function Da(){
 
         var max = 3;
 
-        //var virtualScale = max / (1 + Math.exp(- max *(normalizedDistanceFromOrigin - (1/max * (max + Math.log(max-1))))));
-
+        if(radviz)
+            var virtualScale = max / (1 + Math.exp(- max *(normalizedDistanceFromOrigin - (1/max * (max + Math.log(max-1))))));
+        else {
+            var virtualScale = normalizedDistanceFromOrigin
+        }
         //var virtualScale = normalizedDistanceFromOrigin * normalizedDistanceFromOrigin;
-        var virtualScale = normalizedDistanceFromOrigin
-
-        //console.log(virtualScale);
 
         this.vx = rv.x + (this.x - rv.x) * virtualScale;
         this.vy = rv.y + (this.y - rv.y) * virtualScale;

@@ -2,28 +2,28 @@
  * Created by igorcorrea on 03/12/2015.
  */
 
-setupDragBehaviour = function(rvInst, rvClass) {
+setupDragBehaviour = function(vizInst, vizClass) {
 
     var dragInst = d3.behavior.drag()
         .origin(function(d) { return d; })
 
         .on("drag", function (d, i) {
-            createDragBehaviour(rvInst, this, i);
+            createDragBehaviour(vizInst, this, i);
         });
 
     var dragClass = d3.behavior.drag()
         .origin(function(d) { return d; })
         //.on("dragstart", dragstarted)
         .on("drag", function (d, i) {
-            createDragBehaviour(rvClass, this, i);
+            createDragBehaviour(vizClass, this, i);
         });
 /*
-    var dragRvInst = d3.behavior.drag()
+    var dragvizInst = d3.behavior.drag()
         //.origin(function(d) { return d; })
         .on("drag", function () {
             //d3.event.delta
             var rv = {}
-            rv = rvInst;
+            rv = vizInst;
 
             var da = rv.da;
 
@@ -50,7 +50,7 @@ setupDragBehaviour = function(rvInst, rvClass) {
                     da[i].updateBasedOnNewArc(rv);
                 }
 
-                rvInst.updateInst(true);
+                vizInst.updateInst(true);
 
                 rv.daGroup.selectAll("circle")
                     .attr("cx", function(d, i) {return da[i].x;})
@@ -62,10 +62,10 @@ setupDragBehaviour = function(rvInst, rvClass) {
             }
         });
 */
-    rvInst.daGroup.selectAll("circle").call(dragInst);
-    rvInst.daLabelGroup.selectAll("circle").call(dragInst);
+    vizInst.daGroup.selectAll("circle").call(dragInst);
+    vizInst.daLabelGroup.selectAll("circle").call(dragInst);
 
-    //rvClass.daGroup.selectAll("circle").call(dragClass);
+    //vizClass.daGroup.selectAll("circle").call(dragClass);
 }
 
 createDragBehaviour = function(rv, circle, i) {
@@ -87,7 +87,7 @@ createDragBehaviour = function(rv, circle, i) {
     var mag = Math.sqrt(Math.pow(xFromCenter, 2) +
         Math.pow(yFromCenter, 2));
 
-    var arcDiff = (Math.atan2(xFromCenter/mag,yFromCenter/mag) - pi/2) - da[i].arc;
+    var arcDiff = (Math.atan2(xFromCenter/mag,yFromCenter/mag) - PI/2) - da[i].arc;
 
     if(!shitfPressed) {
         //da[i].arc += arcDiff;
@@ -125,5 +125,5 @@ createDragBehaviour = function(rv, circle, i) {
         .attr("x", function(d, i) {return da[i].labelX;})
         .attr("y", function(d, i) {return da[i].labelY;});
 
-    rvInst.updateInst(true);
+    vizInst.updateInst(true);
 }

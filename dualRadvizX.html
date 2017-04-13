@@ -5,6 +5,8 @@
         <title>Dual Radviz</title>
 
     </head>
+
+<!-- function called to initialize the system -->
     <body onload="startRadviz()">
 
     <div class="inputContainer">
@@ -19,6 +21,8 @@
 
                 <div id="classContribSlider" style="margin:auto;">
                     <br/>
+
+<!--  initial text above contribution slider -->
                     <h4 style="margin: 0 auto;"> <span id="contribution">Class: 0% / Attributes: 100%</span></h4>
 
                 </div>
@@ -36,19 +40,21 @@
             </div>
         </div>
 
-
+<!--  inclusion of scripts -->
         <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script type="text/javascript" src="js/d3.slider.js"></script>
         <script type="text/javascript" src="js/d3.parcoords.js"></script>
         <script type="text/javascript" src="js/polybrush.js"></script>
 
+        <script type="text/javascript" src="js/setupAssistent.js"></script>
         <script type="text/javascript" src="js/da.js"></script>
-        <script type="text/javascript" src="js/rvCircle.js"></script>
+        <script type="text/javascript" src="js/VizContainer.js"></script>
         <script type="text/javascript" src="js/legend.js"></script>
         <script type="text/javascript" src="js/dragManager.js"></script>
         <script type="text/javascript" src="js/tooltipManager.js"></script>
         <script type="text/javascript" src="js/loadFile.js"></script>
 
+<!-- inclusion of styles -->
         <link rel="stylesheet" href="stylesheets/d3.parcoords.css" />
         <link rel="stylesheet" href="stylesheets/d3.slider.css" />
         <link rel="stylesheet" href="stylesheets/styles.css" />
@@ -56,33 +62,7 @@
 
 
         <script>
-            var instOpacity = 0.8;
-            var instRadius = 2.5;
-
-            var svgWidth = 800;
-            var svgHeight = 620;
-
-            var rvInstRadius = 130;
-            var rvClassRadius = 130;
-
-            var color = d3.scale.category10();
-            /*
-            function color(n) {
-              var colores_g = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6",
-               "#3b3eac"];
-              return colores_g[n % colores_g.length];
-            }
-            */
-
-            var useClass = true;
-
-            var pi = Math.PI;
-            var twoPi = pi * 2;
-            var arc;
-
-            var shitfPressed = false;
-            var colorAll = true;
-            var svgContainer;
+            var sa = new SetupAssistent();
 
             var daPositions = [];
             var labelPositions = [];
@@ -97,18 +77,19 @@
             var csv;
             var contribSlider;
             var radviz = false;
+            var colorAll = true;
+            var PI = Math.PI;
+            var TWO_PI = PI * 2;
+            var shitfPressed = false;
 
-            svgContainer = d3.select("#chart")
-                    .append("svg:svg")
-                    .attr("width", svgWidth)
-                    .attr("height", svgHeight)
-                    .style("border", "1px solid black")
-                    .attr("transform", "translate(0,0)");
+            var color = sa.getClassColorScheme();
+
+            svgContainer = sa.getSvgContainer();
 
             function destroyCurrent(){
                 svgContainer.selectAll("*").remove();
 
-                color = d3.scale.category10();
+                color = setupAssistent.getClassColorScheme();
 
                 d3.selectAll("#parc").remove();
                 d3.selectAll("#sliderContainer").append("div")
@@ -123,76 +104,39 @@
             function startRadviz(fileName) {
 
                 if(fileName == undefined) {
-                    //fileName = "iris madeup.csv";
-                    fileName = "db/iris.csv";
-
+                    fileName = sa.defaultFile;
                 }
 
+                // saves the state of Shift key
                 d3.select("body")
                         .on("keydown", function () {
                             shitfPressed = d3.event.shiftKey;
                             if (d3.event.char == "c".charCodeAt(0)) {
-                                rvInst.instGroup.selectAll(".selected").classed("selected", false);
+                                vizInst.instGroup.selectAll(".selected").classed("selected", false);
                             }
                         })
                         .on("keyup", function () {
                             shitfPressed = d3.event.shiftKey;
                         })
+/*
+                vizInst = new VizContainer();
+                vizInst = sa.setBasicVizContainerInfo(vizInst);
+                vizInst = sa.setVizInstInfo(vizInst);
 
-                // SETUP BRUSH
-                function setupBrush(csv) {
-                    var brush = d3.svg.polybrush()
-                            .x(d3.scale.linear().range([0, svgWidth]))
-                            .y(d3.scale.linear().range([0, svgHeight]))
+                vizClass = new VizContainer();
+                vizClass = sa.setBasicVizContainerInfo(vizClass);
+                vizClass = sa.setVizClassInfo(vizClass);
+*/
+                vizInst = new VizContainer();
+                sa.setBasicVizContainerInfo(vizInst);
+                sa.setVizInstInfo(vizInst);
 
-                            .on("brush", function () {
-                                // set the 'selected' class for the circle
+                vizClass = new VizContainer();
+                sa.setBasicVizContainerInfo(vizClass);
+                sa.setVizClassInfo(vizClass);
 
-                                rvInst.instGroup.selectAll("circle").classed("selected", function (d) {
 
-                                    var x = d3.select(this).attr("cx");
-                                    var y = d3.select(this).attr("cy");
-
-                                    if (brush.isWithinExtent(x, y)) {
-                                        d3.select(this).classed("selected", true);
-                                        d.mouseOver = 1;
-
-                                        return true;
-                                    } else {
-                                        d3.select(this).classed("selected", false);
-                                        d.mouseOver = 0;
-
-                                    }
-
-                                });
-                                colorAll = false;
-                                parcoords.data(csv).alpha(1).render();
-                            });
-
-                    svgContainer.append("g")
-                            .attr("class", "brush")
-                            .call(brush);
-
-                }
-
-                rvInst = new RvCircle();
-                rvInst.x = svgWidth / 2;
-                rvInst.y = svgHeight / 2;
-                rvInst.r = rvInstRadius;
-                rvInst.color = "mediumSlateBlue";
-                rvInst.thickness = 2;
-                rvInst.contribution = 1;
-
-                rvClass = new RvCircle();
-                rvClass.x = svgWidth / 2;
-                rvClass.y = svgHeight / 2;
-                rvClass.r = rvClassRadius;
-                rvClass.rvInstRadius = rvInst.r;
-                rvClass.color = "coral";
-                rvClass.thickness = 2;
-                rvClass.contribution = 0;
-
-                //rvInst.createPath();
+                //vizInst.createPath();
 
                 console.log(fileName);
 
@@ -210,27 +154,27 @@
                         }
                     }
 
-                    setupBrush(csv);
+                    sa.setupBrush(csv, svgContainer, vizInst);
 
                     headers = headers.slice(0, classIndex);
-                    rvInst.initializeDaInfo(headers, csv);
-                    rvInst.createDaGroup();
-                    rvInst.initializeInstGroup(csv);
+                    vizInst.initializeDaInfo(headers, csv);
+                    vizInst.createDaGroup();
+                    vizInst.initializeInstGroup(csv);
 
-                    //rvClass.createPath();
+                    //vizClass.createPath();
                     headersClass = d3.entries(csv[0]);
                     headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
 
-                    rvClass.initializeDaInfo(headersClass, csv);
+                    vizClass.initializeDaInfo(headersClass, csv);
 
                     classNames = [];
 
-                    for (var i = 0; i < rvClass.da.length; i++) {
-                        var keyName = rvClass.da[i].key;
+                    for (var i = 0; i < vizClass.da.length; i++) {
+                        var keyName = vizClass.da[i].key;
                         keyName = keyName.replace("confidence(", "").replace(")", "");
                         //console.log(keyName);
                         classNames[i] = keyName;
-                        rvClass.da[i].color = color(keyName);
+                        vizClass.da[i].color = color(keyName);
                     }
                     csv = csv.map(function (d) {
                         d.mouseOver = "false";
@@ -238,37 +182,34 @@
                     });
                     //console.log(csv);
 
-                    //rvClass.createDaGroup();
+                    //vizClass.createDaGroup();
 
-                    rvInst.updateInst(false);
+                    vizInst.updateInst(false);
 
                     setupTooltip(headers, headersClass, csv);
 
                     showLegend(classNames, svgContainer);
-                    setupDragBehaviour(rvInst, rvClass);
+                    setupDragBehaviour(vizInst, vizClass);
 
                     if (contribSlider == undefined) {
                         contribSlider = d3.slider().min(-100).max(100).value(100)
                                 .on("slide", function (evt, value) {
-                                    rvClass.contribution = 1 - value / 100;
-                                    rvInst.contribution = 1 + value / 100;
+                                    vizClass.contribution = 1 - value / 100;
+                                    vizInst.contribution = 1 + value / 100;
 
-                                    var cContr = rvClass.contribution / (rvClass.contribution + rvInst.contribution);
-                                    var aContr = rvInst.contribution / (rvClass.contribution + rvInst.contribution);
+                                    var cContr = vizClass.contribution / (vizClass.contribution + vizInst.contribution);
+                                    var aContr = vizInst.contribution / (vizClass.contribution + vizInst.contribution);
 
                                     //console.log("class: " + cContr + " inst " + aContr);
 
                                     d3.select("#contribution")
                                             .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
 
-                                    rvInst.updateInst(true);
+                                    vizInst.updateInst(true);
                                 });
 
                         d3.select("#classContribSlider").call(contribSlider);
                     }
-
-
-
 
                 });
 

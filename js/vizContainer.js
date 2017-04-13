@@ -2,13 +2,18 @@
  * Created by igorcorrea on 03/12/2015.
  */
 
-function RvCircle(){
+// This used to be called RvCircle, but now, as it's not always a circle
+// (radviz and star coordinates are being used,) it's called VizContainer.
+// The application will have two of these: one to contain the visualization
+// based on the data attributes, and one for the visualization based on the
+// classification results.
+function VizContainer(){
     this.path;
     this.x;
     this.y;
     this.r;
-    this.rvInstRadius;
-    this.thickness;
+    this.innerRadvizRadius; //
+    this.pxThickness;
     this.color;
     this.da = [];
     this.daGroup;
@@ -16,12 +21,14 @@ function RvCircle(){
     this.contribution;
     this.dragging = false;
     this.arc = 0;
+    this.dataPointRadius;
+    this.dataPointOpacity;
     this.createPath = function() {
         arc = d3.svg.arc()
             .innerRadius(this.r)
             .outerRadius(this.r + this.thickness)
             .startAngle(0)
-            .endAngle(twoPi);
+            .endAngle(TWO_PI);
 
         this.path = svgContainer.append("path")
             .attr("d", arc)
@@ -35,14 +42,14 @@ function RvCircle(){
         var daCount = headers.length;
         for (var i = 0; i < daCount; i++) {
             var thisDa = new Da();
-            thisDa.arc = i/daCount * twoPi;
+            thisDa.arc = i/daCount * TWO_PI;
 
             unscaledX = Math.cos(thisDa.arc);
             unscaledY = -Math.sin(thisDa.arc);
 
             thisDa.key = headers[i].key.toString();
             thisDa.radiusSize = 7;
-            thisDa.distFromOrigin = rvInst.r;
+            thisDa.distFromOrigin = vizInst.r;
 
             thisDa.vx = thisDa.x = this.x + unscaledX * (this.r + thisDa.radiusSize/2);
             thisDa.vy = thisDa.y = this.y + unscaledY * (this.r + thisDa.radiusSize/2);
@@ -53,9 +60,9 @@ function RvCircle(){
 
             //console.log(this.instanceRadius);
 
-            if (this.rvInstRadius !== undefined) {
-                thisDa.scaledX = this.x + unscaledX * (this.rvInstRadius - thisDa.radiusSize/2);
-                thisDa.scaledY = this.y + unscaledY * (this.rvInstRadius - thisDa.radiusSize/2);
+            if (this.innerRadvizRadius !== undefined) {
+                thisDa.scaledX = this.x + unscaledX * (this.innerRadvizRadius - thisDa.radiusSize/2);
+                thisDa.scaledY = this.y + unscaledY * (this.innerRadvizRadius - thisDa.radiusSize/2);
             }
             else {
                 thisDa.scaledX = this.x + unscaledX * (this.r - thisDa.radiusSize/2);
@@ -79,9 +86,8 @@ function RvCircle(){
 
     this.getScaledR = function(){
 
-        if (this.rvInstRadius !== undefined) {
-
-            return this.rvInstRadius;
+        if (this.innerRadvizRadius !== undefined) {
+            return this.innerRadvizRadius;
         }
 
         return this.r;
@@ -116,7 +122,7 @@ function RvCircle(){
                 d.inverted = !d.inverted;
                 console.log(d.color + " " + d.inverted + " " + d.key);
                 d3.select(this).style("fill", d.color);
-                rvInst.updateInst(false);
+                vizInst.updateInst(false);
             });
 
         this.daLabelGroup = svgContainer.append("g");
@@ -150,6 +156,8 @@ function RvCircle(){
     this.updateInst = function(instantly) {
         var selection;
 
+        //console.log("starting inst update")
+
         if (!instantly) {
             selection = this.instGroup.selectAll("circle").transition().duration(1000);
         }
@@ -164,8 +172,8 @@ function RvCircle(){
             .attr("cy", function(d, i){
                 return getInstancePosition(d)[1];
             })
-            .attr("opacity", instOpacity)
-            .attr("r", instRadius)
+            .attr("opacity", this.dataPointOpacity)
+            .attr("r", this.dataPointRadius)
             //.style("opacity",function(d){return o(+d.sepal_width);});
             .attr("fill",function(d){return color(d.class);});
             //console.log("inst update")
@@ -179,7 +187,7 @@ getInstancePosition = function(d) {
     var somaY = 0;
     var somaDenominador = 0;
 
-    var rv = rvInst;
+    var rv = vizInst;
     var da = rv.da;
 
     if(radviz) {
@@ -196,7 +204,7 @@ getInstancePosition = function(d) {
             somaDenominador = somaDenominador + val * rv.contribution;
         }
 
-        var rv = rvClass;
+        var rv = vizClass;
         var da = rv.da;
 
         for (var i = 0; i < da.length; i++) {
@@ -217,8 +225,8 @@ getInstancePosition = function(d) {
     }
     else {
 
-        var cContr = rvClass.contribution / (rvClass.contribution + rvInst.contribution);
-        var aContr = rvInst.contribution / (rvClass.contribution + rvInst.contribution);
+        var cContr = vizClass.contribution / (vizClass.contribution + vizInst.contribution);
+        var aContr = vizInst.contribution / (vizClass.contribution + vizInst.contribution);
         //console.log("class: " + cContr + " inst " + aContr);
 
         for (var i = 0; i < da.length; i++) {
@@ -239,7 +247,7 @@ getInstancePosition = function(d) {
             somaDenominador = somaDenominador + val * aContr;
         }
 //*
-        var rv = rvClass;
+        var rv = vizClass;
         var da = rv.da;
 
         for (var i = 0; i < da.length; i++) {

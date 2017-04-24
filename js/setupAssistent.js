@@ -1,7 +1,7 @@
 
 function SetupAssistent(){
-    //this.defaultFile = "db/iris.csv";
-    this.defaultFile = "db/ecoli.csv";
+    this.defaultFile = "db/iris.csv";
+    //this.defaultFile = "db/ecoli.csv";
 
     this.dataPointOpacity = 0.8;
     this.dataPointRadius = 2.5;

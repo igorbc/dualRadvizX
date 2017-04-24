@@ -45,14 +45,16 @@
         <script type="text/javascript" src="js/d3.slider.js"></script>
         <script type="text/javascript" src="js/d3.parcoords.js"></script>
         <script type="text/javascript" src="js/polybrush.js"></script>
+        <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script>
 
         <script type="text/javascript" src="js/setupAssistent.js"></script>
         <script type="text/javascript" src="js/da.js"></script>
-        <script type="text/javascript" src="js/VizContainer.js"></script>
+        <script type="text/javascript" src="js/vizContainer.js"></script>
         <script type="text/javascript" src="js/legend.js"></script>
         <script type="text/javascript" src="js/dragManager.js"></script>
         <script type="text/javascript" src="js/tooltipManager.js"></script>
         <script type="text/javascript" src="js/loadFile.js"></script>
+        <script type="text/javascript" src="js/vec.js"></script>
 
 <!-- inclusion of styles -->
         <link rel="stylesheet" href="stylesheets/d3.parcoords.css" />
@@ -62,6 +64,10 @@
 
 
         <script>
+            var X = 0;
+            var Y = 1;
+            var Z = 2;
+
             var sa = new SetupAssistent();
 
             var daPositions = [];
@@ -89,7 +95,7 @@
             function destroyCurrent(){
                 svgContainer.selectAll("*").remove();
 
-                color = setupAssistent.getClassColorScheme();
+                color = sa.getClassColorScheme();
 
                 d3.selectAll("#parc").remove();
                 d3.selectAll("#sliderContainer").append("div")
@@ -118,15 +124,7 @@
                         .on("keyup", function () {
                             shitfPressed = d3.event.shiftKey;
                         })
-/*
-                vizInst = new VizContainer();
-                vizInst = sa.setBasicVizContainerInfo(vizInst);
-                vizInst = sa.setVizInstInfo(vizInst);
 
-                vizClass = new VizContainer();
-                vizClass = sa.setBasicVizContainerInfo(vizClass);
-                vizClass = sa.setVizClassInfo(vizClass);
-*/
                 vizInst = new VizContainer();
                 sa.setBasicVizContainerInfo(vizInst);
                 sa.setVizInstInfo(vizInst);
@@ -136,7 +134,7 @@
                 sa.setVizClassInfo(vizClass);
 
 
-                //vizInst.createPath();
+                vizInst.createPath();
 
                 console.log(fileName);
 
@@ -161,7 +159,7 @@
                     vizInst.createDaGroup();
                     vizInst.initializeInstGroup(csv);
 
-                    //vizClass.createPath();
+                    vizClass.createPath();
                     headersClass = d3.entries(csv[0]);
                     headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
 
@@ -182,7 +180,7 @@
                     });
                     //console.log(csv);
 
-                    //vizClass.createDaGroup();
+                    vizClass.createDaGroup();
 
                     vizInst.updateInst(false);
 

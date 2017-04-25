@@ -6,11 +6,11 @@ function SetupAssistent(){
     this.dataPointOpacity = 0.8;
     this.dataPointRadius = 2.5;
 
-    this.svgWidth = 800;
+    this.svgWidth = 620;
     this.svgHeight = 620;
 
-    this.innerRadvizRadius = 130;
-    this.radvizClassRadius = 130;
+    this.innerRadvizRadius = 100;
+    this.radvizClassRadius = 100;
     this.circlePxThickness = 2;
 
     this.useClass = true;
@@ -22,6 +22,7 @@ function SetupAssistent(){
     this.setBasicVizContainerInfo = function(vizContainer){
         vizContainer.x = this.svgWidth / 2;
         vizContainer.y = this.svgHeight / 2;
+        vizContainer.center = [this.svgWidth / 2, this.svgHeight / 2, 0];
         vizContainer.pxThickness = this.circlePxThickness;
         vizContainer.dataPointOpacity = this.dataPointOpacity;
         vizContainer.dataPointRadius = this.dataPointRadius;

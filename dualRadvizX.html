@@ -45,7 +45,7 @@
         <script type="text/javascript" src="js/d3.slider.js"></script>
         <script type="text/javascript" src="js/d3.parcoords.js"></script>
         <script type="text/javascript" src="js/polybrush.js"></script>
-        <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script>
+        <!--  <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script> -->
 
         <script type="text/javascript" src="js/setupAssistent.js"></script>
         <script type="text/javascript" src="js/da.js"></script>
@@ -88,6 +88,8 @@
             var TWO_PI = PI * 2;
             var shitfPressed = false;
 
+            var rotAngle = 5;
+
             var color = sa.getClassColorScheme();
 
             svgContainer = sa.getSvgContainer();
@@ -112,18 +114,6 @@
                 if(fileName == undefined) {
                     fileName = sa.defaultFile;
                 }
-
-                // saves the state of Shift key
-                d3.select("body")
-                        .on("keydown", function () {
-                            shitfPressed = d3.event.shiftKey;
-                            if (d3.event.char == "c".charCodeAt(0)) {
-                                vizInst.instGroup.selectAll(".selected").classed("selected", false);
-                            }
-                        })
-                        .on("keyup", function () {
-                            shitfPressed = d3.event.shiftKey;
-                        })
 
                 vizInst = new VizContainer();
                 sa.setBasicVizContainerInfo(vizInst);
@@ -208,6 +198,46 @@
 
                         d3.select("#classContribSlider").call(contribSlider);
                     }
+
+                    // saves the state of Shift key
+                    d3.select("body")
+                            .on("keydown", function () {
+                                shitfPressed = d3.event.shiftKey;
+                                d3.event.preventDefault();
+                                switch(d3.event.code){
+                                    case "KeyC":
+                                        vizInst.instGroup.selectAll(".selected").classed("selected", false);
+                                        console.log("c");
+                                        break;
+
+                                    case "ArrowLeft":
+                                        vizInst.rotate(deg2rad(rotAngle), "y");
+                                        break;
+
+                                    case "ArrowRight":
+                                        vizInst.rotate(deg2rad(-rotAngle), "y");
+                                        break;
+                                    case "ArrowUp":
+                                        vizInst.rotate(deg2rad(rotAngle), "x");
+                                        break;
+
+                                    case "ArrowDown":
+                                        vizInst.rotate(deg2rad(rotAngle), "x");
+                                    /*
+                                    case "":
+                                        rotAngle+=5;
+                                        console.log("rot angle: " + rotAngle);
+
+                                    case "":
+                                        rotAngle-=5;
+                                        console.log("rot angle: " + rotAngle);
+                                    */
+                                }
+                            })
+                            .on("keyup", function () {
+                                shitfPressed = d3.event.shiftKey;
+                            })
+
 
                 });
 

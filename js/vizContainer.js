@@ -9,6 +9,7 @@
 // classification results.
 function VizContainer(){
     this.path;
+    this.center = [];
     this.x;
     this.y;
     this.r;
@@ -33,7 +34,7 @@ function VizContainer(){
         this.path = svgContainer.append("path")
             .attr("d", arc)
             .attr("fill", this.color)
-            .attr("transform","translate(" + this.x + ", " + this.y + ")");
+            .attr("transform","translate(" + this.center[0] + ", " + this.center[1] + ")");
     }
 
     this.initializeDaInfo = function(headers, data) {
@@ -44,6 +45,8 @@ function VizContainer(){
             var thisDa = new Da();
             thisDa.arc = i/daCount * TWO_PI;
 
+            thisDa.vizContainer = this;
+
             unscaledX = Math.cos(thisDa.arc);
             unscaledY = -Math.sin(thisDa.arc);
 
@@ -51,22 +54,22 @@ function VizContainer(){
             thisDa.radiusSize = 7;
             thisDa.distFromOrigin = vizInst.r;
 
-            thisDa.vx = thisDa.x = this.x + unscaledX * (this.r + thisDa.radiusSize/2);
-            thisDa.vy = thisDa.y = this.y + unscaledY * (this.r + thisDa.radiusSize/2);
+            thisDa.vx = thisDa.pos[0] = this.center[0] + unscaledX * (this.r + thisDa.radiusSize/2);
+            thisDa.vy = thisDa.pos[1] = this.center[1] + unscaledY * (this.r + thisDa.radiusSize/2);
 
 
-            thisDa.labelX = this.x + unscaledX * (this.r + thisDa.radiusSize);
-            thisDa.labelY = (this.y + unscaledY * (this.r + thisDa.radiusSize)) - 15;
+            thisDa.labelX = this.center[0] + unscaledX * (this.r + thisDa.radiusSize);
+            thisDa.labelY = (this.center[1] + unscaledY * (this.r + thisDa.radiusSize)) - 15;
 
             //console.log(this.instanceRadius);
 
             if (this.innerRadvizRadius !== undefined) {
-                thisDa.scaledX = this.x + unscaledX * (this.innerRadvizRadius - thisDa.radiusSize/2);
-                thisDa.scaledY = this.y + unscaledY * (this.innerRadvizRadius - thisDa.radiusSize/2);
+                thisDa.scaledX = this.center[0] + unscaledX * (this.innerRadvizRadius - thisDa.radiusSize/2);
+                thisDa.scaledY = this.center[1] + unscaledY * (this.innerRadvizRadius - thisDa.radiusSize/2);
             }
             else {
-                thisDa.scaledX = this.x + unscaledX * (this.r - thisDa.radiusSize/2);
-                thisDa.scaledY = this.y + unscaledY * (this.r - thisDa.radiusSize/2);
+                thisDa.scaledX = this.center[0] + unscaledX * (this.r - thisDa.radiusSize/2);
+                thisDa.scaledY = this.center[1] + unscaledY * (this.r - thisDa.radiusSize/2);
             }
 
             thisDa.color = "white";
@@ -79,6 +82,8 @@ function VizContainer(){
                 .range([0, 1]);
 
             //console.log(thisDa.getInfo());
+            thisDa.pos = [thisDa.pos[0], thisDa.pos[1], 0];
+
             this.da[i] = thisDa;
 
         }
@@ -101,17 +106,17 @@ function VizContainer(){
             .enter()
             .append("line")          // attach a line
             .style("stroke", "gray")  // colour the line
-            .attr("x1", this.x)     // x position of the first end of the line
-            .attr("y1", this.y)      // y position of the first end of the line
-            .attr("x2", function(d){ return d.x;})     // x position of the second end of the line
-            .attr("y2", function(d){ return d.y;});
+            .attr("x1", this.center[0])     // x position of the first end of the line
+            .attr("y1", this.center[1])      // y position of the first end of the line
+            .attr("x2", function(d){ return d.pos[0];})     // x position of the second end of the line
+            .attr("y2", function(d){ return d.pos[1];});
 
         this.daGroup.selectAll("circle")
             .data(this.da)
             .enter()
             .append("circle")
-            .attr("cx", function(d){ return d.x;})
-            .attr("cy", function(d){ return d.y;})
+            .attr("cx", function(d){ return d.pos[0];})
+            .attr("cy", function(d){ return d.pos[1];})
             .attr("r", function(d){ return d.radiusSize;})
             .attr("stroke","black")
             .attr("stroke-width", 2)
@@ -146,8 +151,8 @@ function VizContainer(){
             .data(data)
             .enter()
             .append("circle")
-            .attr("cx", this.x)
-            .attr("cy", this.y)
+            .attr("cx", this.center[0])
+            .attr("cy", this.center[1])
             .attr("r", 1)
             //.attr("stroke", "black")
             .attr("fill",function(d){return color(d.class);});
@@ -179,7 +184,27 @@ function VizContainer(){
             //console.log("inst update")
     }
 
+    this.updateDaPosition = function(){
+        var da = this.da;
+        this.daGroup.selectAll("circle")
+            .attr("cx", function(d, i) {return da[i].pos[0];})
+            .attr("cy", function(d, i) {return da[i].pos[1];});
+
+        this.daLabelGroup.selectAll("text")
+            .attr("x", function(d, i) {return da[i].labelPos[0];})
+            .attr("y", function(d, i) {return da[i].labelPos[1];});
+    }
+
+    this.rotate = function(angle, axis = "z"){
+        var da = this.da;
+        for(var daCount = 0; daCount < da.length; daCount++) {
+            da[daCount].rotate(angle, axis);
+        }
+        this.updateDaPosition();
+    }
 }
+
+
 
 getInstancePosition = function(d) {
 
@@ -242,8 +267,8 @@ getInstancePosition = function(d) {
 
 
 
-            somaX = somaX + ((da[i].vx - rv.x)/rv.r) * val * aContr;
-            somaY = somaY + ((da[i].vy - rv.y)/rv.r) * val * aContr;
+            somaX = somaX + ((da[i].vx - rv.center[0])/rv.r) * val * aContr;
+            somaY = somaY + ((da[i].vy - rv.center[1])/rv.r) * val * aContr;
             somaDenominador = somaDenominador + val * aContr;
         }
 //*
@@ -255,8 +280,8 @@ getInstancePosition = function(d) {
             //var val = +d[da[i].key];
 
 
-            somaX = somaX + ((da[i].scaledX - rv.x)/rv.r) * val * cContr;
-            somaY = somaY + ((da[i].scaledY - rv.y)/rv.r)* val * cContr;
+            somaX = somaX + ((da[i].scaledX - rv.center[0])/rv.r) * val * cContr;
+            somaY = somaY + ((da[i].scaledY - rv.center[1])/rv.r)* val * cContr;
             somaDenominador = somaDenominador + val * cContr;
 
         }
@@ -270,6 +295,6 @@ getInstancePosition = function(d) {
         }
 
         //console.log("soma x: " + somaX + " rv.r: " + rv.r + " rv.x: " + rv.x + " somax*r: " + somaX*rv.r);
-        return [somaX*rv.r + rv.x, somaY*rv.r + rv.y];
+        return [somaX*rv.r + rv.center[0], somaY*rv.r + rv.center[1]];
     }
 }

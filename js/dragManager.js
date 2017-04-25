@@ -17,51 +17,6 @@ setupDragBehaviour = function(vizInst, vizClass) {
         .on("drag", function (d, i) {
             createDragBehaviour(vizClass, this, i);
         });
-/*
-    var dragvizInst = d3.behavior.drag()
-        //.origin(function(d) { return d; })
-        .on("drag", function () {
-            //d3.event.delta
-            var vc = {}
-            vc = vizInst;
-
-            var da = vc.da;
-
-            var x = (d3.event.x - vc.x);
-            var y = (d3.event.y - vc.y);
-
-            var mag = Math.sqrt(x*x + y*y);
-            x = x/mag;
-            y = y/mag;
-
-
-            if(!vc.dragging) {
-                vc.dragging = true;
-                dragStartArc = Math.atan2(x,y) - pi/2;
-                rvOrigArc = vc.arc;
-            }
-            else {
-
-                var arcIncrement =  (Math.atan2(x,y) - pi/2) - dragStartArc;
-
-                vc.arc = rvOrigArc +  arcIncrement;
-
-                for(var i = 0; i < da.length; i++) {
-                    da[i].updateBasedOnNewArc(vc);
-                }
-
-                vizInst.updateInst(true);
-
-                vc.daGroup.selectAll("circle")
-                    .attr("cx", function(d, i) {return da[i].x;})
-                    .attr("cy", function(d, i) {return da[i].y;});
-
-                vc.daLabelGroup.selectAll("text")
-                    .attr("x", function(d, i) {return da[i].labelX;})
-                    .attr("y", function(d, i) {return da[i].labelY;});
-            }
-        });
-*/
     vizInst.daGroup.selectAll("circle").call(dragInst);
     vizInst.daLabelGroup.selectAll("circle").call(dragInst);
 
@@ -69,63 +24,28 @@ setupDragBehaviour = function(vizInst, vizClass) {
 }
 
 createDragBehaviour = function(vc, circle, i) {
-
     var da = vc.da;
 
-    var x = da[i].x + d3.event.dx;
-    var y = da[i].y + d3.event.dy;
+    var previousPos = da[i].pos;
+    var newPos = [da[i].pos[0] + d3.event.dx, da[i].pos[1] + d3.event.dy, da[i].pos[2]];
+    var arcDiff = getAngle2(sub3(newPos, vc.center), sub3(previousPos, vc.center));
 
-    da[i].x = x;
-    da[i].y = y;
-
-    da[i].labelX = x;
-    da[i].labelY = y - 15;
-
-    var xFromCenter = x - vc.x;
-    var yFromCenter = y - vc.y;
-
-    var mag = Math.sqrt(Math.pow(xFromCenter, 2) +
-        Math.pow(yFromCenter, 2));
-
-    var arcDiff = (Math.atan2(xFromCenter/mag,yFromCenter/mag) - PI/2) - da[i].arc;
-
-    //console.log("arcDiff: " + arcDiff);
+    //TODO: this will have to change once RadViz is re-implemented
+    da[i].pos = newPos;
 
     if(!shitfPressed) {
-        //da[i].arc += arcDiff;
-        //da[i].updateBasedOnNewArc(vc);
-
-        da[i].distFromOrigin = mag;
-        da[i].arc += arcDiff;
+        da[i].distFromOrigin = mag3(da[i].pos);
         da[i].updateVirtualPosition(vc, arcDiff);
-        //console.log(da[i].distFromOrigin);
-        d3.select(circle)
-            .attr("cx", da[i].x)
-            .attr("cy", da[i].y);
-
+        console.log("pos: " + da[i].pos);
     }
-
     else {
         for(var daCount = 0; daCount < da.length; daCount++) {
-            da[daCount].arc += arcDiff;
-            da[daCount].updateBasedOnNewArc(vc, arcDiff);
-            da[daCount].updateVirtualPosition(vc);
-
+            if(da[daCount].key != da[i].key)
+                da[daCount].rotate(arcDiff);
         }
-
-        vc.daGroup.selectAll("circle")
-            .attr("cx", function(d, i) {return da[i].x;})
-            .attr("cy", function(d, i) {return da[i].y;});
-        //console.log("move whole group")
     }
 
-    vc.daGroup.selectAll("line")
-        .attr("x2", function(d, i) {return da[i].x;})
-        .attr("y2", function(d, i) {return da[i].y;})
-
-    vc.daLabelGroup.selectAll("text")
-        .attr("x", function(d, i) {return da[i].labelX;})
-        .attr("y", function(d, i) {return da[i].labelY;});
+    vc.updateDaPosition();
 
     vizInst.updateInst(true);
 }

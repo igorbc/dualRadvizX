@@ -26,17 +26,17 @@ setupDragBehaviour = function(vizInst, vizClass) {
 createDragBehaviour = function(vc, circle, i) {
     var da = vc.da;
 
-    var previousPos = da[i].pos;
+    var previousCenteredPos = da[i].centeredPos;
     var newPos = [da[i].pos[0] + d3.event.dx, da[i].pos[1] + d3.event.dy, da[i].pos[2]];
-    var arcDiff = getAngle2(sub3(newPos, vc.center), sub3(previousPos, vc.center));
+    var arcDiff = getAngle2(sub3(newPos, vc.center), previousCenteredPos);
 
     //TODO: this will have to change once RadViz is re-implemented
-    da[i].pos = newPos;
+    da[i].setNewPos(newPos);
 
     if(!shitfPressed) {
-        da[i].distFromOrigin = mag3(da[i].pos);
-        da[i].updateVirtualPosition(vc, arcDiff);
-        console.log("pos: " + da[i].pos);
+
+    //    da[i].updateVirtualPosition(vc, arcDiff);
+    //    console.log("pos: " + da[i].pos);
     }
     else {
         for(var daCount = 0; daCount < da.length; daCount++) {
@@ -46,6 +46,5 @@ createDragBehaviour = function(vc, circle, i) {
     }
 
     vc.updateDaPosition();
-
-    vizInst.updateInst(true);
+    vizInst.updateInst();
 }

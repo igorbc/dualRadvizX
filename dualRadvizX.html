@@ -170,9 +170,9 @@
                     });
                     //console.log(csv);
 
-                    vizClass.createDaGroup();
+                    //vizClass.createDaGroup();
 
-                    vizInst.updateInst(false);
+                    vizInst.updateInst(1000);
 
                     setupTooltip(headers, headersClass, csv);
 
@@ -193,7 +193,7 @@
                                     d3.select("#contribution")
                                             .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
 
-                                    vizInst.updateInst(true);
+                                    vizInst.updateInst();
                                 });
 
                         d3.select("#classContribSlider").call(contribSlider);
@@ -222,7 +222,7 @@
                                         break;
 
                                     case "ArrowDown":
-                                        vizInst.rotate(deg2rad(rotAngle), "x");
+                                        vizInst.rotate(deg2rad(-rotAngle), "x");
                                     /*
                                     case "":
                                         rotAngle+=5;

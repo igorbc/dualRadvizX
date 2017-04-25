@@ -50,7 +50,8 @@ function SetupAssistent(){
             .attr("width", this.svgWidth)
             .attr("height", this.svgHeight)
             .style("border", "1px solid black")
-            .attr("transform", "translate(0,0)");
+            .attr("transform", "translate(0,0)")
+            ;
     }
 
     this.setupBrush = function(csv, svgContainer, vizInst) {

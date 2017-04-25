@@ -38,38 +38,27 @@ function VizContainer(){
     }
 
     this.initializeDaInfo = function(headers, data) {
-        var unscaledX;
-        var unscaledY;
+        var normalizedPos = [];
         var daCount = headers.length;
         for (var i = 0; i < daCount; i++) {
             var thisDa = new Da();
             thisDa.arc = i/daCount * TWO_PI;
 
             thisDa.vizContainer = this;
-
-            unscaledX = Math.cos(thisDa.arc);
-            unscaledY = -Math.sin(thisDa.arc);
-
             thisDa.key = headers[i].key.toString();
             thisDa.radiusSize = 7;
             thisDa.distFromOrigin = vizInst.r;
 
-            thisDa.vx = thisDa.pos[0] = this.center[0] + unscaledX * (this.r + thisDa.radiusSize/2);
-            thisDa.vy = thisDa.pos[1] = this.center[1] + unscaledY * (this.r + thisDa.radiusSize/2);
+            normalizedPos = [Math.cos(thisDa.arc),
+                            -Math.sin(thisDa.arc),
+                             0];
 
-
-            thisDa.labelX = this.center[0] + unscaledX * (this.r + thisDa.radiusSize);
-            thisDa.labelY = (this.center[1] + unscaledY * (this.r + thisDa.radiusSize)) - 15;
-
-            //console.log(this.instanceRadius);
+            thisDa.setNewPos(add3(mul3(normalizedPos,thisDa.vizContainer.r),
+                                  thisDa.vizContainer.center));
 
             if (this.innerRadvizRadius !== undefined) {
-                thisDa.scaledX = this.center[0] + unscaledX * (this.innerRadvizRadius - thisDa.radiusSize/2);
-                thisDa.scaledY = this.center[1] + unscaledY * (this.innerRadvizRadius - thisDa.radiusSize/2);
             }
             else {
-                thisDa.scaledX = this.center[0] + unscaledX * (this.r - thisDa.radiusSize/2);
-                thisDa.scaledY = this.center[1] + unscaledY * (this.r - thisDa.radiusSize/2);
             }
 
             thisDa.color = "white";
@@ -80,9 +69,6 @@ function VizContainer(){
                     d3.max(data,function(d) {return +d[thisDa.key]})
                 ])
                 .range([0, 1]);
-
-            //console.log(thisDa.getInfo());
-            thisDa.pos = [thisDa.pos[0], thisDa.pos[1], 0];
 
             this.da[i] = thisDa;
 
@@ -127,7 +113,7 @@ function VizContainer(){
                 d.inverted = !d.inverted;
                 console.log(d.color + " " + d.inverted + " " + d.key);
                 d3.select(this).style("fill", d.color);
-                vizInst.updateInst(false);
+                vizInst.updateInst(1000);
             });
 
         this.daLabelGroup = svgContainer.append("g");
@@ -135,8 +121,8 @@ function VizContainer(){
             .data(this.da)
             .enter()
             .append("text")
-            .attr("x", function(d){ return d.labelX;})
-            .attr("y", function(d){ return d.labelY;})
+            .attr("x", function(d){ return d.labelPos[0];})
+            .attr("y", function(d){ return d.labelPos[1];})
             .text(function(d){ return d.key;})
             .attr("fill", "black")
             .style("font-family", "verdana")
@@ -158,13 +144,11 @@ function VizContainer(){
             .attr("fill",function(d){return color(d.class);});
     }
 
-    this.updateInst = function(instantly) {
+    this.updateInst = function(delay = 0) {
         var selection;
 
-        //console.log("starting inst update")
-
-        if (!instantly) {
-            selection = this.instGroup.selectAll("circle").transition().duration(1000);
+        if (delay) {
+            selection = this.instGroup.selectAll("circle").transition().duration(delay);
         }
         else {
             selection = this.instGroup.selectAll("circle");
@@ -180,19 +164,35 @@ function VizContainer(){
             .attr("opacity", this.dataPointOpacity)
             .attr("r", this.dataPointRadius)
             //.style("opacity",function(d){return o(+d.sepal_width);});
-            .attr("fill",function(d){return color(d.class);});
+            .attr("fill", function(d){return color(d.class);});
             //console.log("inst update")
     }
 
-    this.updateDaPosition = function(){
-        var da = this.da;
-        this.daGroup.selectAll("circle")
-            .attr("cx", function(d, i) {return da[i].pos[0];})
-            .attr("cy", function(d, i) {return da[i].pos[1];});
+    this.updateDaPosition = function(delay = 0){
+        var circles, text, lines;
 
-        this.daLabelGroup.selectAll("text")
-            .attr("x", function(d, i) {return da[i].labelPos[0];})
-            .attr("y", function(d, i) {return da[i].labelPos[1];});
+        if(delay){
+            circles = this.daGroup.selectAll("circle").transition().duration(delay);
+            text = this.daLabelGroup.selectAll("text").transition().duration(delay);
+            lines = this.daGroup.selectAll("line").transition().duration(delay);
+        }
+        else{
+            circles = this.daGroup.selectAll("circle");
+            text = this.daLabelGroup.selectAll("text");
+            lines = this.daGroup.selectAll("line");
+        }
+
+        circles
+            .attr("cx", function(d) {return d.pos[0];})
+            .attr("cy", function(d) {return d.pos[1];});
+
+        text
+            .attr("x", function(d) {return d.labelPos[0];})
+            .attr("y", function(d) {return d.labelPos[1];});
+
+        lines
+            .attr("x2", function(d){ return d.pos[0];})     // x position of the second end of the line
+            .attr("y2", function(d){ return d.pos[1];});
     }
 
     this.rotate = function(angle, axis = "z"){
@@ -201,19 +201,17 @@ function VizContainer(){
             da[daCount].rotate(angle, axis);
         }
         this.updateDaPosition();
+        this.updateInst();
     }
 }
 
-
-
 getInstancePosition = function(d) {
 
-    var somaX = 0;
-    var somaY = 0;
-    var somaDenominador = 0;
+    var sum = [0, 0];
+    var denominatorSum = 0;
 
-    var rv = vizInst;
-    var da = rv.da;
+    var vc = vizInst;
+    var da = vc.da;
 
     if(radviz) {
         for (var i = 0; i < da.length; i++) {
@@ -223,22 +221,22 @@ getInstancePosition = function(d) {
 
             //var val = +d[da[i].key];
             //console.log(val);
-            //console.log(da[i].vx - rv.x);
-            somaX = somaX + da[i].vx * val * rv.contribution;
-            somaY = somaY + da[i].vy * val * rv.contribution;
-            somaDenominador = somaDenominador + val * rv.contribution;
+            //console.log(da[i].vx - vc.x);
+            sum[0] += da[i].vx * val * vc.contribution;
+            sum[1] += da[i].vy * val * vc.contribution;
+            denominatorSum += val * vc.contribution;
         }
 
-        var rv = vizClass;
-        var da = rv.da;
+        var vc = vizClass;
+        var da = vc.da;
 
         for (var i = 0; i < da.length; i++) {
             var val = da[i].scale(+d[da[i].key]);
             //var val = +d[da[i].key];
 
-            somaX = somaX + da[i].scaledX * val * rv.contribution;
-            somaY = somaY + da[i].scaledY * val * rv.contribution;
-            somaDenominador = somaDenominador + val * rv.contribution;
+            somaX = somaX + da[i].scaledX * val * vc.contribution;
+            somaY = somaY + da[i].scaledY * val * vc.contribution;
+            somaDenominador = somaDenominador + val * vc.contribution;
         }
 
         if (somaDenominador == 0) {
@@ -257,44 +255,27 @@ getInstancePosition = function(d) {
         for (var i = 0; i < da.length; i++) {
             var val = (da[i].inverted)? 1 - da[i].scale(+d[da[i].key]) : da[i].scale(+d[da[i].key]);
 
-            //var val = +d[da[i].key];
-            //console.log(val);
-
-            //console.log((da[i].vx - rv.x)/rv.r);
-
-            //da[i].vx = (da[i].vx - rv.x)/rv.r;
-            //da[i].vy = (da[i].vy - rv.y)/rv.r;
-
-
-
-            somaX = somaX + ((da[i].vx - rv.center[0])/rv.r) * val * aContr;
-            somaY = somaY + ((da[i].vy - rv.center[1])/rv.r) * val * aContr;
-            somaDenominador = somaDenominador + val * aContr;
+            sum = add3(sum, mul3(da[i].normalizedPos, val * aContr));
+            denominatorSum += val * aContr;
         }
-//*
-        var rv = vizClass;
-        var da = rv.da;
+
+        var vc = vizClass;
+        var da = vc.da;
 
         for (var i = 0; i < da.length; i++) {
             var val = da[i].scale(+d[da[i].key]);
-            //var val = +d[da[i].key];
 
-
-            somaX = somaX + ((da[i].scaledX - rv.center[0])/rv.r) * val * cContr;
-            somaY = somaY + ((da[i].scaledY - rv.center[1])/rv.r)* val * cContr;
-            somaDenominador = somaDenominador + val * cContr;
+            sum = add3(sum, mul3(da[i].normalizedPos, val * cContr));
+            denominatorSum += val * cContr;
 
         }
 
-      //  somaX = somaX/2;
-      //  somaY = somaY/2;
-//*/
-        if (somaDenominador == 0) {
+        if (denominatorSum == 0) {
 
-            console.log("denom: " + somaDenominador + " ... " + [somaX / somaDenominador, somaY / somaDenominador])
+            console.log("denom: " + denominatorSum + " ... " + [sum[0] / denominatorSum, sum[1] / denominatorSum])
         }
 
-        //console.log("soma x: " + somaX + " rv.r: " + rv.r + " rv.x: " + rv.x + " somax*r: " + somaX*rv.r);
-        return [somaX*rv.r + rv.center[0], somaY*rv.r + rv.center[1]];
+        //console.log("soma x: " + somaX + " vc.r: " + vc.r + " vc.x: " + vc.x + " somax*r: " + somaX*vc.r);
+        return add3(mul3(sum, vc.r), vc.center);
     }
 }

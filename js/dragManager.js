@@ -17,34 +17,34 @@ setupDragBehaviour = function(vizInst, vizClass) {
         .on("drag", function (d, i) {
             createDragBehaviour(vizClass, this, i);
         });
+
     vizInst.daGroup.selectAll("circle").call(dragInst);
     vizInst.daLabelGroup.selectAll("circle").call(dragInst);
 
-    //vizClass.daGroup.selectAll("circle").call(dragClass);
+    vizClass.daGroup.selectAll("circle").call(dragClass);
+    vizClass.daLabelGroup.selectAll("circle").call(dragClass);
 }
 
 createDragBehaviour = function(vc, circle, i) {
-    var da = vc.da;
+    var avap = vc.avap;
 
-    var previousCenteredPos = da[i].centeredPos;
-    var newPos = [da[i].pos[0] + d3.event.dx, da[i].pos[1] + d3.event.dy, da[i].pos[2]];
+    var previousCenteredPos = avap[i].centeredPos;
+    var newPos = [avap[i].pos[0] + d3.event.dx, avap[i].pos[1] + d3.event.dy, avap[i].pos[2]];
     var arcDiff = getAngle2(sub3(newPos, vc.center), previousCenteredPos);
 
     //TODO: this will have to change once RadViz is re-implemented
-    da[i].setNewPos(newPos);
+    avap[i].setNewPos(newPos);
 
     if(!shitfPressed) {
 
-    //    da[i].updateVirtualPosition(vc, arcDiff);
-    //    console.log("pos: " + da[i].pos);
     }
     else {
-        for(var daCount = 0; daCount < da.length; daCount++) {
-            if(da[daCount].key != da[i].key)
-                da[daCount].rotate(arcDiff);
+        for(var daCount = 0; daCount < avap.length; daCount++) {
+            if(avap[daCount].key != avap[i].key)
+                avap[daCount].rotate(arcDiff);
         }
     }
 
-    vc.updateDaPosition();
+    vc.updateDaPositionOnScreen();
     vizInst.updateInst();
 }

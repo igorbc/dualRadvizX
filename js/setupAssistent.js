@@ -9,6 +9,11 @@ function SetupAssistent(){
     this.svgWidth = 620;
     this.svgHeight = 620;
 
+    // used for some experimental things regarding opacity and size
+    // of circles representing instances
+    this.svgHalfDiagonal = Math.sqrt(
+            this.svgHeight*this.svgHeight + this.svgWidth*this.svgWidth)/2;
+
     this.innerRadvizRadius = 100;
     this.radvizClassRadius = 100;
     this.circlePxThickness = 2;
@@ -19,20 +24,26 @@ function SetupAssistent(){
     this.vizInstColor = "mediumSlateBlue";
     this.vizClassColor = "coral";
 
-    this.setBasicVizContainerInfo = function(vizContainer){
-        vizContainer.x = this.svgWidth / 2;
-        vizContainer.y = this.svgHeight / 2;
-        vizContainer.center = [this.svgWidth / 2, this.svgHeight / 2, 0];
-        vizContainer.pxThickness = this.circlePxThickness;
-        vizContainer.dataPointOpacity = this.dataPointOpacity;
-        vizContainer.dataPointRadius = this.dataPointRadius;
-        return vizContainer;
+    this.setBasicVizContainerInfo = function(avapContainer){
+        avapContainer.x = this.svgWidth / 2;
+        avapContainer.y = this.svgHeight / 2;
+        avapContainer.center = [this.svgWidth / 2, this.svgHeight / 2, 0];
+        avapContainer.pxThickness = this.circlePxThickness;
+        avapContainer.dataPointOpacity = this.dataPointOpacity;
+        avapContainer.dataPointRadius = this.dataPointRadius;
+        return avapContainer;
     }
 
     this.setVizInstInfo = function(vizInst){
         vizInst.contribution = 1;
         vizInst.color = this.vizInstColor;
         vizInst.r = this.innerRadvizRadius;
+        vizInst.zOpacityScale = d3.scale.linear()
+            .domain([-this.svgHalfDiagonal, this.svgHalfDiagonal])
+            .range([0.5, 0.8]);
+        vizInst.zSizeScale = d3.scale.linear()
+                .domain([-this.svgHalfDiagonal, this.svgHalfDiagonal])
+                .range([0.5, 8]);
         return vizInst;
     }
 
@@ -86,6 +97,19 @@ function SetupAssistent(){
         svgContainer.append("g")
                 .attr("class", "brush")
                 .call(brush);
+    }
+
+    this.destroyCurrent = function(){
+        svgContainer.selectAll("*").remove();
+
+        color = this.getClassColorScheme();
+
+        d3.selectAll("#parc").remove();
+        d3.selectAll("#sliderContainer").append("div")
+                .attr("id", "parc")
+                .attr("class", "parcoords")
+                .style("width","650px")
+                .style("height","350px");
     }
 
     this.getClassColorScheme = function(){

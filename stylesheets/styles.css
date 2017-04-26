@@ -12,12 +12,16 @@ body {
     height: 620px;
     margin: 0 auto;
     position: relative;
-    background: #ffffff;
+    background: #fff;
     width: 800px;
 }
 
 #parc {
 
+}
+
+#circle {
+    pos = [];
 }
 
 .tooltip {

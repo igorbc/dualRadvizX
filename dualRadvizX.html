@@ -48,8 +48,8 @@
         <!--  <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script> -->
 
         <script type="text/javascript" src="js/setupAssistent.js"></script>
-        <script type="text/javascript" src="js/da.js"></script>
-        <script type="text/javascript" src="js/vizContainer.js"></script>
+        <script type="text/javascript" src="js/avap.js"></script>
+        <script type="text/javascript" src="js/avapContainer.js"></script>
         <script type="text/javascript" src="js/legend.js"></script>
         <script type="text/javascript" src="js/dragManager.js"></script>
         <script type="text/javascript" src="js/tooltipManager.js"></script>
@@ -61,17 +61,13 @@
         <link rel="stylesheet" href="stylesheets/d3.slider.css" />
         <link rel="stylesheet" href="stylesheets/styles.css" />
 
-
-
         <script>
             var X = 0;
             var Y = 1;
             var Z = 2;
 
             var sa = new SetupAssistent();
-
-            var daPositions = [];
-            var labelPositions = [];
+    
 
             var headers = [];
 
@@ -87,27 +83,10 @@
             var PI = Math.PI;
             var TWO_PI = PI * 2;
             var shitfPressed = false;
-
             var rotAngle = 5;
 
             var color = sa.getClassColorScheme();
-
             svgContainer = sa.getSvgContainer();
-
-            function destroyCurrent(){
-                svgContainer.selectAll("*").remove();
-
-                color = sa.getClassColorScheme();
-
-                d3.selectAll("#parc").remove();
-                d3.selectAll("#sliderContainer").append("div")
-                        .attr("id", "parc")
-                        .attr("class", "parcoords")
-                        .style("width","650px")
-                        .style("height","350px");
-
-
-            }
 
             function startRadviz(fileName) {
 
@@ -115,23 +94,17 @@
                     fileName = sa.defaultFile;
                 }
 
-                vizInst = new VizContainer();
+                vizInst = new AvapContainer();
                 sa.setBasicVizContainerInfo(vizInst);
                 sa.setVizInstInfo(vizInst);
 
-                vizClass = new VizContainer();
+                vizClass = new AvapContainer();
                 sa.setBasicVizContainerInfo(vizClass);
                 sa.setVizClassInfo(vizClass);
-
-
-                vizInst.createPath();
 
                 console.log(fileName);
 
                 d3.csv(fileName, function (csv) {
-                    //console.log(err);
-                    daPositions = [];
-                    labelPositions = [];
                     headers = d3.entries(csv[0]);
 
                     classIndex = headers.indexOf("class");
@@ -149,29 +122,27 @@
                     vizInst.createDaGroup();
                     vizInst.initializeInstGroup(csv);
 
-                    vizClass.createPath();
                     headersClass = d3.entries(csv[0]);
                     headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
 
                     vizClass.initializeDaInfo(headersClass, csv);
-
                     classNames = [];
 
-                    for (var i = 0; i < vizClass.da.length; i++) {
-                        var keyName = vizClass.da[i].key;
+                    for (var i = 0; i < vizClass.avap.length; i++) {
+                        var keyName = vizClass.avap[i].key;
                         keyName = keyName.replace("confidence(", "").replace(")", "");
                         //console.log(keyName);
                         classNames[i] = keyName;
-                        vizClass.da[i].color = color(keyName);
+                        vizClass.avap[i].color = color(keyName);
                     }
                     csv = csv.map(function (d) {
                         d.mouseOver = "false";
                         return d;
                     });
-                    //console.log(csv);
+                    vizClass.createDaGroup();
+                    vizClass.createPath();
 
-                    //vizClass.createDaGroup();
-
+                    vizInst.createPath();
                     vizInst.updateInst(1000);
 
                     setupTooltip(headers, headersClass, csv);
@@ -219,6 +190,7 @@
                                         break;
                                     case "ArrowUp":
                                         vizInst.rotate(deg2rad(rotAngle), "x");
+                                        //vizClass.rotate(deg2rad(rotAngle), "x");
                                         break;
 
                                     case "ArrowDown":

@@ -2,7 +2,9 @@
  * Created by igorcorrea on 03/12/2015.
  */
 
-function Da(){
+// Stands for Axis-Vector/Anchor-Point,
+// as it can be used in Star Coordinates and RadViz, respectively.
+function AvAp(){
     this.normalizedPos = []; // position relative to center. It will be between
                              // 0 and 1 if the DA is at the initial distance
                              // from the visualization's center
@@ -17,19 +19,19 @@ function Da(){
     this.distFromCenter;
     this.vx;
     this.vy;
-    this.vizContainer;
+    this.avapContainer;
     this.inverted = 0;
 
     this.rotate = function(angle, axis = "z"){
-        this.setNewPos(rotate3around(angle, this.pos, this.vizContainer.center, axis));
+        this.setNewPos(rotate3around(angle, this.pos, this.avapContainer.center, axis));
     }
 
     this.setNewPos = function(pos){
         this.pos = pos;
         this.labelPos = [this.pos[0], this.pos[1]-15];
-        this.centeredPos = sub3(pos, this.vizContainer.center);
+        this.centeredPos = sub3(pos, this.avapContainer.center);
         this.distFromCenter = mag3(this.centeredPos);
-        this.normalizedPos = mul3(this.centeredPos, 1/this.vizContainer.r);
+        this.normalizedPos = mul3(this.centeredPos, 1/this.avapContainer.r);
 
     }
 

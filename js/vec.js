@@ -28,7 +28,6 @@ function getAngle2(vec1, vec2){
     y1 = vec1[1];
     y2 = vec2[1];
     return Math.atan2(x1*y2 - x2*y1, x1*x2 + y1*y2);
-
 }
 
 // returns the normalized (unit vector) from a 3 element array
@@ -55,6 +54,7 @@ function matMul3(mat3x3, vec3){
             mat3x3[6]*vec3[0] + mat3x3[7]*vec3[1] + mat3x3[8]*vec3[2]];
 }
 
+// rotates 'point' by 'angle' around 'axis' considering the origin as [0, 0]
 function rotate3(angle, point, axis = "z"){
         var a = {"x": 0, "y": 1, "z": 2}
         var c = Math.cos(angle);
@@ -74,6 +74,7 @@ function rotate3(angle, point, axis = "z"){
         return matMul3(rotationMatrix[a[axis]], point);
 }
 
+// rotates 'point' by 'angle' around 'axis' considering 'origin'
 function rotate3around(angle, point, origin, axis = "z"){
     return add3(rotate3(angle, sub3(point, origin), axis), origin);
 }

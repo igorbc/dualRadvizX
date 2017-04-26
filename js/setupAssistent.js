@@ -1,3 +1,4 @@
+// used to make all seemingly arbitrary attribuitions.
 
 function SetupAssistent(){
     this.defaultFile = "db/iris.csv";
@@ -10,49 +11,52 @@ function SetupAssistent(){
     this.svgHeight = 620;
 
     // used for some experimental things regarding opacity and size
-    // of circles representing instances
+    // of circles representing instances.
     this.svgHalfDiagonal = Math.sqrt(
             this.svgHeight*this.svgHeight + this.svgWidth*this.svgWidth)/2;
 
-    this.innerRadvizRadius = 100;
-    this.radvizClassRadius = 100;
+    this.innerRadvizRadius = 150;
+    this.radvizClassRadius = 200;
     this.circlePxThickness = 2;
 
     this.useClass = true;
     this.arc;
 
-    this.vizInstColor = "mediumSlateBlue";
+    this.vizAttrColor = "mediumSlateBlue";
     this.vizClassColor = "coral";
 
-    this.setBasicVizContainerInfo = function(avapContainer){
-        avapContainer.x = this.svgWidth / 2;
-        avapContainer.y = this.svgHeight / 2;
-        avapContainer.center = [this.svgWidth / 2, this.svgHeight / 2, 0];
-        avapContainer.pxThickness = this.circlePxThickness;
-        avapContainer.dataPointOpacity = this.dataPointOpacity;
-        avapContainer.dataPointRadius = this.dataPointRadius;
-        return avapContainer;
-    }
-
-    this.setVizInstInfo = function(vizInst){
-        vizInst.contribution = 1;
-        vizInst.color = this.vizInstColor;
-        vizInst.r = this.innerRadvizRadius;
-        vizInst.zOpacityScale = d3.scale.linear()
+    this.setBasicVizContainerInfo = function(vc){
+        vc.center = [this.svgWidth/2, this.svgHeight/2, 0];
+        vc.r = this.innerRadvizRadius;
+        vc.dataPointOpacity = this.dataPointOpacity;
+        vc.dataPointRadius = this.dataPointRadius;
+        vc.zOpacityScale = d3.scale.linear()
             .domain([-this.svgHalfDiagonal, this.svgHalfDiagonal])
             .range([0.5, 0.8]);
-        vizInst.zSizeScale = d3.scale.linear()
+        vc.zSizeScale = d3.scale.linear()
                 .domain([-this.svgHalfDiagonal, this.svgHalfDiagonal])
                 .range([0.5, 8]);
-        return vizInst;
+        return vc;
     }
 
-    this.setVizClassInfo = function(vizClass){
-        vizClass.contribution = 0;
-        vizClass.color = this.vizClassColor;
-        vizClass.r = this.radvizClassRadius;
-        vizClass.innerRadvizRadius = this.innerRadvizRadius;
-        return vizClass;
+    this.setAvApContainerAttrInfo = function(acAttr, vc){
+        acAttr.vc = vc;
+        acAttr.pxThickness = this.circlePxThickness;
+        acAttr.contribution = 1;
+        acAttr.normalizedContribution = 1;
+        acAttr.color = this.vizAttrColor;
+        acAttr.r = this.innerRadvizRadius;
+        return acAttr;
+    }
+
+    this.setAvApContainerClassInfo = function(acClass, vc){
+        acClass.vc = vc;
+        acClass.pxThickness = this.circlePxThickness;
+        acClass.contribution = 0;
+        acClass.normalizedContribution = 0;
+        acClass.color = this.vizClassColor;
+        acClass.r = this.radvizClassRadius;
+        return acClass;
     }
 
     this.getSvgContainer = function(){
@@ -65,7 +69,7 @@ function SetupAssistent(){
             ;
     }
 
-    this.setupBrush = function(csv, svgContainer, vizInst) {
+    this.setupBrush = function(csv, svgContainer, acAttr) {
         var brush = d3.svg.polybrush()
                 .x(d3.scale.linear().range([0, this.svgWidth]))
                 .y(d3.scale.linear().range([0, this.svgHeight]))
@@ -73,7 +77,7 @@ function SetupAssistent(){
                 .on("brush", function () {
                     // set the 'selected' class for the circle
 
-                    vizInst.instGroup.selectAll("circle").classed("selected", function (d) {
+                    acAttr.instGroup.selectAll("circle").classed("selected", function (d) {
 
                         var x = d3.select(this).attr("cx");
                         var y = d3.select(this).attr("cy");

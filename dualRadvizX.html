@@ -50,6 +50,7 @@
         <script type="text/javascript" src="js/setupAssistent.js"></script>
         <script type="text/javascript" src="js/avap.js"></script>
         <script type="text/javascript" src="js/avapContainer.js"></script>
+        <script type="text/javascript" src="js/vizContainer.js"></script>
         <script type="text/javascript" src="js/legend.js"></script>
         <script type="text/javascript" src="js/dragManager.js"></script>
         <script type="text/javascript" src="js/tooltipManager.js"></script>
@@ -62,12 +63,8 @@
         <link rel="stylesheet" href="stylesheets/styles.css" />
 
         <script>
-            var X = 0;
-            var Y = 1;
-            var Z = 2;
-
             var sa = new SetupAssistent();
-    
+            var vc = new VizContainer();
 
             var headers = [];
 
@@ -94,13 +91,7 @@
                     fileName = sa.defaultFile;
                 }
 
-                vizInst = new AvapContainer();
-                sa.setBasicVizContainerInfo(vizInst);
-                sa.setVizInstInfo(vizInst);
-
-                vizClass = new AvapContainer();
-                sa.setBasicVizContainerInfo(vizClass);
-                sa.setVizClassInfo(vizClass);
+                vc.createAcApContainers();
 
                 console.log(fileName);
 
@@ -115,56 +106,59 @@
                         }
                     }
 
-                    sa.setupBrush(csv, svgContainer, vizInst);
+                    sa.setupBrush(csv, svgContainer, vc.acAttr);
 
                     headers = headers.slice(0, classIndex);
-                    vizInst.initializeDaInfo(headers, csv);
-                    vizInst.createDaGroup();
-                    vizInst.initializeInstGroup(csv);
+                    vc.acAttr.initializeAvApInfo(headers, csv);
+                    vc.acAttr.createAvApGroup();
+
+                    vc.initializeInstGroup(csv);
+
 
                     headersClass = d3.entries(csv[0]);
                     headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
 
-                    vizClass.initializeDaInfo(headersClass, csv);
+                    vc.acClass.initializeAvApInfo(headersClass, csv);
                     classNames = [];
 
-                    for (var i = 0; i < vizClass.avap.length; i++) {
-                        var keyName = vizClass.avap[i].key;
+                    for (var i = 0; i < vc.acClass.avap.length; i++) {
+                        var keyName = vc.acClass.avap[i].key;
                         keyName = keyName.replace("confidence(", "").replace(")", "");
                         //console.log(keyName);
                         classNames[i] = keyName;
-                        vizClass.avap[i].color = color(keyName);
+                        vc.acClass.avap[i].color = color(keyName);
                     }
                     csv = csv.map(function (d) {
                         d.mouseOver = "false";
                         return d;
                     });
-                    vizClass.createDaGroup();
-                    vizClass.createPath();
+                    vc.acClass.createAvApGroup();
+                    vc.acClass.createPath();
 
-                    vizInst.createPath();
-                    vizInst.updateInst(1000);
+                    vc.acAttr.createPath();
+                    vc.updateInst(1000);
 
                     setupTooltip(headers, headersClass, csv);
 
                     showLegend(classNames, svgContainer);
-                    setupDragBehaviour(vizInst, vizClass);
+                    setupDragBehaviour(vc.acAttr, vc.acClass);
 
                     if (contribSlider == undefined) {
                         contribSlider = d3.slider().min(-100).max(100).value(100)
                                 .on("slide", function (evt, value) {
-                                    vizClass.contribution = 1 - value / 100;
-                                    vizInst.contribution = 1 + value / 100;
+                                    vc.acClass.contribution = 1 - value / 100;
+                                    vc.acAttr.contribution = 1 + value / 100;
 
-                                    var cContr = vizClass.contribution / (vizClass.contribution + vizInst.contribution);
-                                    var aContr = vizInst.contribution / (vizClass.contribution + vizInst.contribution);
+                                    var cContr = vc.acClass.contribution / (vc.acClass.contribution + vc.acAttr.contribution);
+                                    var aContr = vc.acAttr.contribution / (vc.acClass.contribution + vc.acAttr.contribution);
 
-                                    //console.log("class: " + cContr + " inst " + aContr);
+                                    vc.acAttr.normalizedContribution = aContr;
+                                    vc.acClass.normalizedContribution = cContr;
 
                                     d3.select("#contribution")
                                             .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
 
-                                    vizInst.updateInst();
+                                    vc.updateInst();
                                 });
 
                         d3.select("#classContribSlider").call(contribSlider);
@@ -177,24 +171,30 @@
                                 d3.event.preventDefault();
                                 switch(d3.event.code){
                                     case "KeyC":
-                                        vizInst.instGroup.selectAll(".selected").classed("selected", false);
+                                        vc.acAttr.instGroup.selectAll(".selected").classed("selected", false);
                                         console.log("c");
                                         break;
 
                                     case "ArrowLeft":
-                                        vizInst.rotate(deg2rad(rotAngle), "y");
+                                        vc.acAttr.rotate(deg2rad(rotAngle), "y");
                                         break;
 
                                     case "ArrowRight":
-                                        vizInst.rotate(deg2rad(-rotAngle), "y");
+                                        vc.acAttr.rotate(deg2rad(-rotAngle), "y");
                                         break;
                                     case "ArrowUp":
-                                        vizInst.rotate(deg2rad(rotAngle), "x");
-                                        //vizClass.rotate(deg2rad(rotAngle), "x");
+                                        vc.acAttr.rotate(deg2rad(rotAngle), "x");
+                                        //vc.acClass.rotate(deg2rad(rotAngle), "x");
                                         break;
 
                                     case "ArrowDown":
-                                        vizInst.rotate(deg2rad(-rotAngle), "x");
+                                        vc.acAttr.rotate(deg2rad(-rotAngle), "x");
+                                        break;
+                                    case "KeyR":
+                                        vc.isRadviz = !vc.isRadviz;
+                                        sa.destroyCurrent();
+                                        startRadviz();
+                                        break;
                                     /*
                                     case "":
                                         rotAngle+=5;

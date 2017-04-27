@@ -43,6 +43,7 @@
 <!--  inclusion of scripts -->
         <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <script type="text/javascript" src="js/d3.slider.js"></script>
+        <script type="text/javascript" src="js/d3extension.js"></script>
         <script type="text/javascript" src="js/d3.parcoords.js"></script>
         <script type="text/javascript" src="js/polybrush.js"></script>
         <!--  <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script> -->
@@ -66,7 +67,7 @@
             var sa = new SetupAssistent();
             var vc = new VizContainer();
 
-            var headers = [];
+            var headersAttr = [];
 
             var classIndex;
 
@@ -81,6 +82,7 @@
             var TWO_PI = PI * 2;
             var shitfPressed = false;
             var rotAngle = 5;
+            var delay = 800;
 
             var color = sa.getClassColorScheme();
             svgContainer = sa.getSvgContainer();
@@ -96,51 +98,39 @@
                 console.log(fileName);
 
                 d3.csv(fileName, function (csv) {
-                    headers = d3.entries(csv[0]);
-
-                    classIndex = headers.indexOf("class");
-                    for (var i = 0; i < headers.length; i++) {
-                        if (headers[i].key.toString() == "class") {
-                            classIndex = i;
-                            break;
-                        }
-                    }
+                    var headers = sa.getAttrAndClassHeaders(csv);
+                    headersAttr = headers[0];
+                    headersClass = headers[1];
+                    classNames = sa.getClassNames(headersClass);
 
                     sa.setupBrush(csv, svgContainer, vc.acAttr);
 
-                    headers = headers.slice(0, classIndex);
-                    vc.acAttr.initializeAvApInfo(headers, csv);
-                    vc.acAttr.createAvApGroup();
+                    vc.acAttr.initializeAvApInfo(headersAttr, csv);
+                    vc.acClass.initializeAvApInfo(headersClass, csv, classNames, color);
 
-                    vc.initializeInstGroup(csv);
-
-
-                    headersClass = d3.entries(csv[0]);
-                    headersClass = headersClass.slice(classIndex + 1, headersClass.length - 1);
-
-                    vc.acClass.initializeAvApInfo(headersClass, csv);
-                    classNames = [];
-
-                    for (var i = 0; i < vc.acClass.avap.length; i++) {
-                        var keyName = vc.acClass.avap[i].key;
-                        keyName = keyName.replace("confidence(", "").replace(")", "");
-                        //console.log(keyName);
-                        classNames[i] = keyName;
-                        vc.acClass.avap[i].color = color(keyName);
+                    if(vc.isRadviz){
+                        vc.acAttr.createPath(delay);
+                        vc.acClass.createPath(delay);
                     }
+                    else{
+                        vc.acAttr.createStarCoordLines();
+                        vc.acClass.createStarCoordLines();
+                    }
+                    vc.initializeInstGroup(csv);
+                    vc.acClass.createAvApGroup();
+                    vc.acAttr.createAvApGroup();
+                    vc.acClass.rotate(-TWO_PI/headersAttr.length);
+
+                    vc.updateInst(delay);
+
                     csv = csv.map(function (d) {
                         d.mouseOver = "false";
                         return d;
                     });
-                    vc.acClass.createAvApGroup();
-                    vc.acClass.createPath();
-
-                    vc.acAttr.createPath();
-                    vc.updateInst(1000);
 
                     setupTooltip(headers, headersClass, csv);
 
-                    showLegend(classNames, svgContainer);
+                    addSvgLegend(classNames, svgContainer);
                     setupDragBehaviour(vc.acAttr, vc.acClass);
 
                     if (contribSlider == undefined) {
@@ -158,6 +148,15 @@
                                     d3.select("#contribution")
                                             .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
 
+                                    /*
+                                    if(vc.acAttr.normalizedContribution > 0.5){
+                                        vc.acAttr.bringAvApsToFront();
+                                    }
+                                    else{
+                                        vc.acClass.bringAvApsToFront();
+*/
+                                    vc.acAttr.updateAvApPositionOnScreen();
+                                    vc.acClass.updateAvApPositionOnScreen();
                                     vc.updateInst();
                                 });
 
@@ -176,24 +175,30 @@
                                         break;
 
                                     case "ArrowLeft":
-                                        vc.acAttr.rotate(deg2rad(rotAngle), "y");
+                                        if(!vc.isRadviz)
+                                            vc.acAttr.rotate(deg2rad(rotAngle), "y");
+                                            vc.acClass.rotate(deg2rad(rotAngle), "y");
                                         break;
 
                                     case "ArrowRight":
-                                        vc.acAttr.rotate(deg2rad(-rotAngle), "y");
+                                        if(!vc.isRadviz)
+                                            vc.acAttr.rotate(deg2rad(-rotAngle), "y");
+                                            vc.acClass.rotate(deg2rad(-rotAngle), "y");
                                         break;
                                     case "ArrowUp":
-                                        vc.acAttr.rotate(deg2rad(rotAngle), "x");
+                                        if(!vc.isRadviz)
+                                            vc.acAttr.rotate(deg2rad(rotAngle), "x");
+                                            vc.acClass.rotate(deg2rad(rotAngle), "x");
                                         //vc.acClass.rotate(deg2rad(rotAngle), "x");
                                         break;
 
                                     case "ArrowDown":
-                                        vc.acAttr.rotate(deg2rad(-rotAngle), "x");
+                                        if(!vc.isRadviz)
+                                            vc.acAttr.rotate(deg2rad(-rotAngle), "x");
+                                            vc.acClass.rotate(deg2rad(-rotAngle), "x");
                                         break;
                                     case "KeyR":
-                                        vc.isRadviz = !vc.isRadviz;
-                                        sa.destroyCurrent();
-                                        startRadviz();
+                                        vc.toggleRvSc();
                                         break;
                                     /*
                                     case "":

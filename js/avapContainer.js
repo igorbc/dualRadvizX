@@ -26,12 +26,14 @@ function AvApContainer(){
     this.avap = [];
     this.avapGroup;
     this.avapLabelGroup;
+    this.avapLineGroup;
     this.contribution;
     this.normalizedContribution;
+    this.opacity;
     this.dragging = false;
     this.arc = 0;
     this.vc; // the VizContainer which is parent of the AvApContainer.
-    this.createPath = function() {
+    this.createPath = function(delay = 0) {
         /*
         var data = [];
 
@@ -53,16 +55,23 @@ function AvApContainer(){
                 .outerRadius(this.r + this.pxThickness)
                 .startAngle(0)
                 .endAngle(TWO_PI);
-            this.path = svgContainer.append("path")
-                .attr("class", "arc")
+            this.path = svgContainer.append("path");
+            this.path.attr("class", "arc")
                 .attr("d", arcFunction)
                 .attr("fill", this.color)
+                .attr("opacity", 0)
                 .attr("transform", "translate(" + this.vc.center[0] + ", " + this.vc.center[1] + ")");
+            this.path
+                .transition()
+                .duration(delay)
+                .attr("opacity", this.normalizedContribution)
+                ;
+            this.path.moveToBack();
                 //*/
         }
     }
 
-    this.updatePath = function() {
+    this.updatePath = function(delay = 0) {
         /*
         var data = [];
 
@@ -72,16 +81,14 @@ function AvApContainer(){
 
         //this.path.attr("d", lineFunction(data));
         /*/
-        arcFunction = d3.svg.arc()
-            .innerRadius(this.r)
-            .outerRadius(this.r + this.pxThickness)
-            .startAngle(0)
-            .endAngle(TWO_PI);
-        this.path.attr("d", arcFunction);
+        this.path
+        .transition()
+        .duration(delay)
+        .attr("opacity", this.normalizedContribution);
         //*/
     }
 
-    this.initializeAvApInfo = function(headers, data) {
+    this.initializeAvApInfo = function(headers, data, colorKeys = 0, colorScheme = 0) {
         var normalizedPos = [];
         var avapCount = headers.length;
         for (var i = 0; i < avapCount; i++) {
@@ -89,7 +96,7 @@ function AvApContainer(){
             thisAvAp.arc = i/avapCount * TWO_PI;
 
             thisAvAp.avapContainer = this;
-            thisAvAp.key = headers[i].key.toString();
+            thisAvAp.key = headers[i];
             thisAvAp.radiusSize = 7;
             thisAvAp.distFromOrigin = vc.acAttr.r;
 
@@ -100,12 +107,12 @@ function AvApContainer(){
             thisAvAp.setNewPos(add3(mul3(normalizedPos,thisAvAp.avapContainer.r),
                                   thisAvAp.avapContainer.vc.center));
 
-            if (this.innerRadvizRadius !== undefined) {
+            if(colorKeys){
+                thisAvAp.color = colorScheme(colorKeys[i]);
             }
-            else {
+            else{
+                thisAvAp.color = "white";
             }
-
-            thisAvAp.color = "white";
 
             thisAvAp.scale = d3.scale.linear()
                 .domain([
@@ -119,11 +126,9 @@ function AvApContainer(){
         }
     }
 
-    this.createAvApGroup = function() {
-        this.avapGroup = svgContainer.append("g");
-
-        if(!this.vc.isRadviz){
-        this.avapGroup.selectAll("line")
+    this.createStarCoordLines = function(delay = 0){
+        this.avapLineGroup = svgContainer.append("g");
+        this.avapLineGroup.selectAll("line")
             .data(this.avap)
             .enter()
             .append("line")          // attach a line
@@ -131,9 +136,18 @@ function AvApContainer(){
             .attr("x1", this.vc.center[0])     // x position of the first end of the line
             .attr("y1", this.vc.center[1])      // y position of the first end of the line
             .attr("x2", function(d){ return d.pos[0];})     // x position of the second end of the line
-            .attr("y2", function(d){ return d.pos[1];});
-        }
+            .attr("y2", function(d){ return d.pos[1];})
+            .attr("opacity", 0)
+            .transition()
+            .duration(delay)
+            .attr("opacity", this.contribution)
+            ;
+        this.avapLineGroup.moveToBack();
 
+    }
+
+    this.createAvApGroup = function() {
+        this.avapGroup = svgContainer.append("g");
         this.avapGroup.selectAll("circle")
             .data(this.avap)
             .enter()
@@ -144,6 +158,7 @@ function AvApContainer(){
             .attr("stroke","black")
             .attr("stroke-width", 2)
             .attr("fill", function(d){ return d.color;})
+            .attr("opacity", this.contribution)
             .on("dblclick", function(d) {
                 if(d.color == "white") d.color = "gray";
                 else d.color = "white";
@@ -162,6 +177,7 @@ function AvApContainer(){
             .attr("y", function(d){ return d.labelPos[1];})
             .text(function(d){ return d.key;})
             .attr("fill", "black")
+            .attr("opacity", this.contribution)
             .style("font-family", "verdana")
             .style("font-size", 12)
             .attr("text-anchor", "middle")
@@ -171,30 +187,26 @@ function AvApContainer(){
     this.updateAvApPositionOnScreen = function(delay = 0){
         var circles, text, lines;
 
-        if(delay){
-            circles = this.avapGroup.selectAll("circle").transition().duration(delay);
-            text = this.avapLabelGroup.selectAll("text").transition().duration(delay);
-            lines = this.avapGroup.selectAll("line").transition().duration(delay);
-        }
-        else{
-            circles = this.avapGroup.selectAll("circle");
-            text = this.avapLabelGroup.selectAll("text");
-            lines = this.avapGroup.selectAll("line");
-        }
+        circles = this.avapGroup.selectAll("circle").transition().duration(delay);
+        text = this.avapLabelGroup.selectAll("text").transition().duration(delay);
 
         circles
+            .attr("opacity", this.contribution)
             .attr("cx", function(d) {return d.pos[0];})
             .attr("cy", function(d) {return d.pos[1];});
 
         text
+            .attr("opacity", this.contribution)
             .attr("x", function(d) {return d.labelPos[0];})
             .attr("y", function(d) {return d.labelPos[1];});
 
         if(this.vc.isRadviz){
-            this.updatePath();
+            this.updatePath(delay);
         }
         else{
+            lines = this.avapLineGroup.selectAll("line").transition().duration(delay);
             lines
+                .attr("opacity", this.contribution)
                 .attr("x2", function(d){ return d.pos[0];})     // x position of the second end of the line
                 .attr("y2", function(d){ return d.pos[1];});
         }
@@ -208,6 +220,22 @@ function AvApContainer(){
         }
         this.updateAvApPositionOnScreen();
         this.vc.updateInst();
+    }
+
+    this.bringAvApsToFront = function(){
+        this.avapGroup.selectAll("circle").moveToFront();
+        this.avapLabelGroup.selectAll("text").moveToFront();
+    }
+
+    this.alignAvApsWithRadviz = function(){
+        var avaps = this.avap;
+        for(var avapCount = 0; avapCount < avaps.length; avapCount++) {
+            var avap = avaps[avapCount];
+            avap.pos = [avap.pos[0], avap.pos[1], 0];
+            avap.setNewPos(getPointDistRFromC(avap.pos,
+                                                  this.vc.center,
+                                                  this.r));
+        }
     }
 }
 

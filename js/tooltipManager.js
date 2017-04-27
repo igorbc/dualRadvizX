@@ -58,10 +58,10 @@ setupTooltip = function(headers, headersClass, csv) {
 getInstanceStr = function (d, headers, headersClass) {
     var str = "";
     for (var i = 0; i < headers.length; i++) {
-        str = str + "<p>" + headers[i].key + ": " + d[headers[i].key] + "</p>"
+        str = str + "<p>" + headers[i] + ": " + d[headers[i]] + "</p>"
     }
     for (var i = 0; i < headersClass.length; i++) {
-        str = str + "<p>" + headersClass[i].key + ": " + Math.round(d[headersClass[i].key] * 100) / 100 + "</p>"
+        str = str + "<p>" + headersClass[i] + ": " + Math.round(d[headersClass[i]] * 100) / 100 + "</p>"
     }
     return str;
 }
@@ -73,7 +73,7 @@ createParCoords = function(csv, headers){
         e.class = d.class;
         e.mouseOver = d.mouseOver;
         for (var i = 0; i < headers.length; i++) {
-            e[headers[i].key.toString()] = +d[headers[i].key.toString()];
+            e[headers[i]] = +d[headers[i]];
         }
         return e;
     });

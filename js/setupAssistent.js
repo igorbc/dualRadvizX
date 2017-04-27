@@ -15,9 +15,10 @@ function SetupAssistent(){
     this.svgHalfDiagonal = Math.sqrt(
             this.svgHeight*this.svgHeight + this.svgWidth*this.svgWidth)/2;
 
-    this.innerRadvizRadius = 150;
+    this.innerRadvizRadius = 200;
     this.radvizClassRadius = 200;
     this.circlePxThickness = 2;
+    this.opacity = 1;
 
     this.useClass = true;
     this.arc;
@@ -42,6 +43,7 @@ function SetupAssistent(){
     this.setAvApContainerAttrInfo = function(acAttr, vc){
         acAttr.vc = vc;
         acAttr.pxThickness = this.circlePxThickness;
+        acAttr.opacity = this.opacity;
         acAttr.contribution = 1;
         acAttr.normalizedContribution = 1;
         acAttr.color = this.vizAttrColor;
@@ -52,6 +54,7 @@ function SetupAssistent(){
     this.setAvApContainerClassInfo = function(acClass, vc){
         acClass.vc = vc;
         acClass.pxThickness = this.circlePxThickness;
+        acClass.opacity = this.opacity;
         acClass.contribution = 0;
         acClass.normalizedContribution = 0;
         acClass.color = this.vizClassColor;
@@ -67,6 +70,43 @@ function SetupAssistent(){
             .style("border", "1px solid black")
             .attr("transform", "translate(0,0)")
             ;
+    }
+
+    // returns arrays where
+    // [0] is an array with the headers for the Attirbute columns
+    // [1] is an array with the headers for the Class Probabiliies columns
+    this.getAttrAndClassHeaders = function(data){
+        var firstLine = d3.entries(data[0]);
+        var allHeaders = [];
+
+        // what will be returned
+        var headerAttr = [];
+        var headerClass = [];
+
+        // gets the index of where the Class Probabiliies columns start
+
+        for (var i = 0; i < firstLine.length; i++) {
+            allHeaders.push(firstLine[i].key.toString());
+            if (allHeaders[i] == "class") {
+                classIndex = i;
+            }
+        }
+
+        headerAttr = allHeaders.slice(0, classIndex);
+        headerClass = allHeaders.slice(classIndex + 1, allHeaders.length - 1);
+
+        return [headerAttr, headerClass];
+    }
+
+    this.getClassNames = function(headerClass){
+        var classNames = [];
+
+        for (var i = 0; i < headerClass.length; i++) {
+            var keyName =  headerClass[i].replace("confidence(", "").replace(")", "");
+            console.log(keyName);
+            classNames.push(keyName);
+        }
+        return classNames;
     }
 
     this.setupBrush = function(csv, svgContainer, acAttr) {

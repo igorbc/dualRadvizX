@@ -49,7 +49,7 @@ function VizContainer(){
 
         selection
             .each(function(d,i){
-                vc.instPos.push(getInstancePosition(d));
+                vc.instPos.push(vc.getInstancePosition(d));
             })
             .attr("cx", function(d, i){
                 return vc.instPos[i][0];
@@ -70,84 +70,89 @@ function VizContainer(){
             */
             .attr("fill", function(d){return color(d.class);});
     }
-}
 
-getInstancePosition = function(d) {
+    this.getInstancePosition = function(d) {
 
-    var sum = [0, 0, 0];
-    var denominatorSum = 0;
+        var sum = [0, 0, 0];
+        var denominatorSum = 0;
 
-    var ac = vc.acAttr;
-    var avap = ac.avap;
+        var contributions = [vc.acAttr.normalizedContribution,
+                             vc.acClass.normalizedContribution];
 
-    if(vc.isRadviz) {
-        var cContr = vc.acClass.normalizedContribution;
-        var aContr = vc.acAttr.normalizedContribution;
+        var avaps = [vc.acAttr.avap,
+                     vc.acClass.avap];
 
-        for (var i = 0; i < avap.length; i++) {
-            var val = (avap[i].inverted)? 1 - avap[i].scale(+d[avap[i].key]) : avap[i].scale(+d[avap[i].key]);
+        // RadViz
+        if(vc.isRadviz) {
+            for(var j = 0; j < contributions.length; j++){
+                var avap = avaps[j];
+                for(var i = 0; i < avap.length; i++) {
+                    var val = (avap[i].inverted)?
+                              1 - avap[i].scale(+d[avap[i].key]) :
+                                  avap[i].scale(+d[avap[i].key]);
 
-            sum = add3(sum, mul3(avap[i].normalizedPosFixedRadius, val * aContr));
-            denominatorSum += val * aContr;
+                    sum = add3(sum, mul3(avap[i].normalizedPosFixedRadius, val * contributions[j]));
+                    denominatorSum += val * contributions[j];
+                }
+            }
+            if (denominatorSum == 0)
+                console.log("denom: " + denominatorSum);
+            return add3(mul3(mul3(sum, vc.r),1/denominatorSum), vc.center);
         }
 
-        var ac = vc.acClass;
-        var avap = ac.avap;
+        // Star Coordinates
+        else {
+            for(var j = 0; j < contributions.length; j++){
+                var avap = avaps[j];
+                for(var i = 0; i < avap.length; i++) {
+                    var val = (avap[i].inverted)?
+                              1 - avap[i].scale(+d[avap[i].key]) :
+                                  avap[i].scale(+d[avap[i].key]);
 
-        for (var i = 0; i < avap.length; i++) {
-            var val = avap[i].scale(+d[avap[i].key]);
-
-            sum = add3(sum, mul3(avap[i].normalizedPosFixedRadius, val * cContr));
-            denominatorSum += val * cContr;
-
+                    sum = add3(sum, mul3(avap[i].normalizedPos, val * contributions[j]));
+                }
+            }
+            return add3(mul3(sum, vc.r), vc.center);
         }
-
-        if (denominatorSum == 0) {
-            console.log("denom: " + denominatorSum + " ... " + [sum[0] / denominatorSum, sum[1] / denominatorSum])
-        }
-
-        //console.log("soma x: " + somaX + " ac.r: " + ac.r + " ac.x: " + ac.x + " somax*r: " + somaX*ac.r);
-        return add3(mul3(mul3(sum, vc.r),1/denominatorSum), vc.center);
-/*
-        for (var i = 0; i < avap.length; i++) {
-            var val = avap[i].scale(+d[avap[i].key]);
-            //var val = +d[avap[i].key];
-
-            somaX = somaX + avap[i].scaledX * val * ac.contribution;
-            somaY = somaY + avap[i].scaledY * val * ac.contribution;
-            somaDenominador = somaDenominador + val * ac.contribution;
-        }
-
-        if (somaDenominador == 0) {
-
-            console.log("denom: " + somaDenominador + " ... " + [somaX / somaDenominador, somaY / somaDenominador])
-        }
-
-        return [sum[0]/denominatorSum, sum[1]/denominatorSum, 0];
-
-        //return [somaX, somaY];
-*/
     }
-    else {
-        var cContr = vc.acClass.normalizedContribution;
-        var aContr = vc.acAttr.normalizedContribution;
 
-        for (var i = 0; i < avap.length; i++) {
-            var val = (avap[i].inverted)? 1 - avap[i].scale(+d[avap[i].key]) : avap[i].scale(+d[avap[i].key]);
+    this.toggleRvSc = function(){
+        this.isRadviz = !this.isRadviz;
+        if(this.isRadviz){
+            vc.acAttr.avapLineGroup.selectAll("line")
+                .transition()
+                .duration(delay)
+                .attr("opacity",0).remove();
 
-            sum = add3(sum, mul3(avap[i].normalizedPos, val * aContr));
+            vc.acClass.avapLineGroup.selectAll("line")
+                .transition()
+                .duration(delay)
+                .attr("opacity",0).remove();
+
+            vc.acAttr.createPath(delay);
+            vc.acClass.createPath(delay);
+            vc.acAttr.alignAvApsWithRadviz();
+            vc.acClass.alignAvApsWithRadviz();
         }
+        else{
+            vc.acAttr.path
+                .transition()
+                .duration(delay)
+                .attr("opacity",0)
+                .remove();
 
-        var ac = vc.acClass;
-        var avap = ac.avap;
+            vc.acClass.path
+                .transition()
+                .duration(delay)
+                .attr("opacity",0)
+                .remove();
 
-        for (var i = 0; i < avap.length; i++) {
-            var val = avap[i].scale(+d[avap[i].key]);
-
-            sum = add3(sum, mul3(avap[i].normalizedPos, val * cContr));
+            vc.acAttr.createStarCoordLines(delay);
+            vc.acClass.createStarCoordLines(delay);
         }
-
-        //console.log("soma x: " + somaX + " ac.r: " + ac.r + " ac.x: " + ac.x + " somax*r: " + somaX*ac.r);
-        return add3(mul3(sum, vc.r), vc.center);
+        vc.acAttr.updateAvApPositionOnScreen(delay);
+        vc.acClass.updateAvApPositionOnScreen(delay);
+        vc.updateInst(delay);
+        //onD3TransitionsEnd(t1,t2,cb);
     }
 }

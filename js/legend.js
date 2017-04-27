@@ -2,7 +2,7 @@
  * Created by igorcorrea on 03/12/2015.
  */
 
-showLegend = function(classNames, svgContainer) {
+addSvgLegend = function(classNames, svgContainer) {
     svgContainer.selectAll("legendRect")
         .data(classNames)
         .enter()

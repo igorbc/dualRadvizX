@@ -78,3 +78,7 @@ function rotate3(angle, point, axis = "z"){
 function rotate3around(angle, point, origin, axis = "z"){
     return add3(rotate3(angle, sub3(point, origin), axis), origin);
 }
+
+function getPointDistRFromC(point, center, r){
+    return add3(mul3(normalized3(sub3(point, center)),r),center);
+}

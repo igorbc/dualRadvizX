@@ -48,16 +48,18 @@ function AvApContainer(){
             .attr("fill", "none")
             ;
 
-        /*/
+        */
         if(this.vc.isRadviz){
+/*
             arcFunction = d3.svg.arc()
                 .innerRadius(this.r)
                 .outerRadius(this.r + this.pxThickness)
                 .startAngle(0)
                 .endAngle(TWO_PI);
+                */
             this.path = svgContainer.append("path");
             this.path.attr("class", "arc")
-                .attr("d", arcFunction)
+                .attr("d", this.arcFunction())
                 .attr("fill", this.color)
                 .attr("opacity", 0)
                 .attr("transform", "translate(" + this.vc.center[0] + ", " + this.vc.center[1] + ")");
@@ -67,7 +69,7 @@ function AvApContainer(){
                 .attr("opacity", this.normalizedContribution)
                 ;
             this.path.moveToBack();
-                //*/
+
         }
     }
 
@@ -78,9 +80,9 @@ function AvApContainer(){
         for(var i = 0; i < this.avap.length+3; i++){
             data.push(this.avap[i%this.avap.length].pos);
         }
+        */
+        this.path.attr("d", this.arcFunction());
 
-        //this.path.attr("d", lineFunction(data));
-        /*/
         this.path
         .transition()
         .duration(delay)
@@ -237,7 +239,16 @@ function AvApContainer(){
                                                   this.r));
         }
     }
+
+    this.arcFunction = function(){
+        return d3.svg.arc()
+        .innerRadius(this.r)
+        .outerRadius(this.r + this.pxThickness)
+        .startAngle(0)
+        .endAngle(TWO_PI);
+    }
 }
+
 
 
 lineFunction = d3.svg.line()

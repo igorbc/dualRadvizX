@@ -128,7 +128,7 @@
                         return d;
                     });
 
-                    setupTooltip(headers, headersClass, csv);
+                    setupTooltip(headersAttr, headersClass, csv);
 
                     addSvgLegend(classNames, svgContainer);
                     setupDragBehaviour(vc.acAttr, vc.acClass);
@@ -175,27 +175,47 @@
                                         break;
 
                                     case "ArrowLeft":
-                                        if(!vc.isRadviz)
-                                            vc.acAttr.rotate(deg2rad(rotAngle), "y");
-                                            vc.acClass.rotate(deg2rad(rotAngle), "y");
+                                        if(!vc.isRadviz){
+                                            if(!d3.event.altKey)
+                                                vc.acAttr.rotate(deg2rad(rotAngle), "y");
+                                            if(!d3.event.shiftKey)
+                                                vc.acClass.rotate(deg2rad(rotAngle), "y");
+                                        }
                                         break;
 
                                     case "ArrowRight":
-                                        if(!vc.isRadviz)
-                                            vc.acAttr.rotate(deg2rad(-rotAngle), "y");
-                                            vc.acClass.rotate(deg2rad(-rotAngle), "y");
+                                        if(!vc.isRadviz){
+                                            if(!d3.event.altKey)
+                                                vc.acAttr.rotate(deg2rad(-rotAngle), "y");
+                                            if(!d3.event.shiftKey)
+                                                vc.acClass.rotate(deg2rad(-rotAngle), "y");
+                                        }
                                         break;
                                     case "ArrowUp":
-                                        if(!vc.isRadviz)
-                                            vc.acAttr.rotate(deg2rad(rotAngle), "x");
-                                            vc.acClass.rotate(deg2rad(rotAngle), "x");
-                                        //vc.acClass.rotate(deg2rad(rotAngle), "x");
+                                        if(!vc.isRadviz){
+                                            if(!d3.event.altKey)
+                                                vc.acAttr.rotate(deg2rad(rotAngle), "x");
+                                            if(!d3.event.shiftKey)
+                                                vc.acClass.rotate(deg2rad(rotAngle), "x");
+                                        }
+                                        /*
+                                        else{
+                                            vc.acAttr.r+=2;
+                                            vc.acAttr.updatePath();
+                                            vc.acAttr.alignAvApsWithRadviz();
+                                            vc.acAttr.updateAvApPositionOnScreen();
+                                            vc.updateInst();
+                                        }
+                                        */
                                         break;
 
                                     case "ArrowDown":
-                                        if(!vc.isRadviz)
-                                            vc.acAttr.rotate(deg2rad(-rotAngle), "x");
-                                            vc.acClass.rotate(deg2rad(-rotAngle), "x");
+                                        if(!vc.isRadviz){
+                                            if(!d3.event.altKey)
+                                                vc.acAttr.rotate(deg2rad(-rotAngle), "x");
+                                            if(!d3.event.shiftKey)
+                                                vc.acClass.rotate(deg2rad(-rotAngle), "x");
+                                        }
                                         break;
                                     case "KeyR":
                                         vc.toggleRvSc();

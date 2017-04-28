@@ -78,10 +78,12 @@ function SetupAssistent(){
     this.getAttrAndClassHeaders = function(data){
         var firstLine = d3.entries(data[0]);
         var allHeaders = [];
+        var allHeaderLines = [];
 
         // what will be returned
         var headerAttr = [];
         var headerClass = [];
+        var headerLineAttr = [];
 
         // gets the index of where the Class Probabiliies columns start
 
@@ -117,7 +119,7 @@ function SetupAssistent(){
                 .on("brush", function () {
                     // set the 'selected' class for the circle
 
-                    acAttr.instGroup.selectAll("circle").classed("selected", function (d) {
+                    vc.instGroup.selectAll("circle").classed("selected", function (d) {
 
                         var x = d3.select(this).attr("cx");
                         var y = d3.select(this).attr("cy");

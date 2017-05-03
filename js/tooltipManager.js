@@ -92,10 +92,10 @@ createParCoords = function(csv, headers){
         .color(function(d){
             //console.log(color(d.class));
             if (colorAll){
-                return color(d.class);
+                return vc.colorScheme(d.class);
             }
             else {
-                return (d.mouseOver == 1)? color(d.class): "rgba(100,100,100,0.1)";
+                return (d.mouseOver == 1)? vc.colorScheme(d.class): "rgba(100,100,100,0.1)";
             }
 
         })

@@ -1,8 +1,9 @@
 // used to make all seemingly arbitrary attribuitions.
 
 function SetupAssistent(){
-    this.defaultFile = "db/iris.csv";
     //this.defaultFile = "db/ecoli.csv";
+    //this.defaultFile = "db/iris.csv";
+    this.defaultFile = "db/iris naive bayes.csv"
 
     this.dataPointOpacity = 0.8;
     this.dataPointRadius = 2.5;
@@ -28,7 +29,7 @@ function SetupAssistent(){
 
     this.shitfPressed = false;
     this.rotAngle = 5;
-    this.delay = 800;
+    this.delay = 600;
 
     this.setBasicVizContainerInfo = function(vc){
         vc.center = [this.svgWidth/2, this.svgHeight/2, 0];

@@ -188,7 +188,7 @@ function AvApContainer(){
             console.log(d.color + " " + d.inverted + " " + d.key);
             d3.select(this).style("fill", d.color);
             vc.updateInst(delay);
-        }); 
+        });
     }
 
     this.updateAvApPositionOnScreen = function(delay = 0){

@@ -14,6 +14,8 @@ function VizContainer(){
     this.instGroup; // svg group containing the data points
     this.instPos = []; // holds the position in screen coordinates
                        //(pixels in the SVG) of every data point.
+    this.colorScheme;
+    this.confusionClass = 0;
 
     this.createAcApContainers = function(){
         this.acAttr = new AvApContainer();
@@ -33,7 +35,7 @@ function VizContainer(){
             .attr("cx", this.center[0])
             .attr("cy", this.center[1])
             .attr("r", 1)
-            .attr("fill",function(d){return color(d.class);});
+            .attr("fill",function(d){return vc.colorScheme(d.class);});
     }
 
     this.updateInst = function(delay = 0) {
@@ -68,7 +70,7 @@ function VizContainer(){
                 return vc.acAttr.zSizeScale(this.instPos[i][2])
             })
             */
-            .attr("fill", function(d){return color(d.class);});
+            .attr("fill", vc.colorFunction);
     }
 
     this.getInstancePosition = function(d) {
@@ -154,5 +156,34 @@ function VizContainer(){
         vc.acClass.updateAvApPositionOnScreen(delay);
         vc.updateInst(delay);
         //onD3TransitionsEnd(t1,t2,cb);
+    }
+
+    this.updateColor = function(delay = 0){
+            vc.instGroup.selectAll("circle")
+            .transition().duration(0)
+            .attr("fill", function(d){return "black";})
+            .transition().duration(delay)
+            .attr("fill", vc.colorFunction);
+    }
+    this.colorFunction = function(d){
+        if(!vc.confusionClass){
+            return vc.colorScheme(d["class"]);
+        }
+        else{
+            if(d["prediction(class)"] == vc.confusionClass){
+                if(d["prediction(class)"] == d["class"]){
+                    return "green" // true positive
+                }
+                else {
+                    return "yellow" // false positive
+                }
+            }
+            else if(d["class"] == vc.confusionClass){
+                    return "red" // false negative
+                }
+                else{
+                    return "grey" // true negative
+                }
+        }
     }
 }

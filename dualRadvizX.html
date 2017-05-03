@@ -78,12 +78,10 @@
             var parcoords;
             var csv;
             var sliderConfigured;
-            var radviz = false;
             var colorAll = true;
             var PI = Math.PI;
             var TWO_PI = PI * 2;
 
-            var color = sa.getClassColorScheme();
             svgContainer = sa.getSvgContainer();
 
             function startRadviz(fileName) {
@@ -93,6 +91,7 @@
                 }
 
                 vc.createAcApContainers();
+                vc.colorScheme = sa.getClassColorScheme();
 
                 console.log(fileName);
 
@@ -105,7 +104,7 @@
                     sa.setupBrush(csv, svgContainer, vc.acAttr);
 
                     vc.acAttr.initializeAvApInfo(headersAttr, csv);
-                    vc.acClass.initializeAvApInfo(headersClass, csv, classNames, color);
+                    vc.acClass.initializeAvApInfo(headersClass, csv, classNames, vc.colorScheme);
 
                     if(vc.isRadviz){
                         vc.acAttr.createPath(sa.delay);
@@ -118,6 +117,8 @@
                     vc.initializeInstGroup(csv);
                     vc.acClass.createAvApGroup();
                     vc.acAttr.createAvApGroup();
+
+                    vc.acAttr.addDoubleClickBehaviour(sa.delay);
                     vc.acClass.rotate(-TWO_PI/headersAttr.length, "z", false);
 
                     vc.updateInst(sa.delay);

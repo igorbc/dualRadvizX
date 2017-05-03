@@ -11,7 +11,17 @@ addSvgLegend = function(classNames, svgContainer) {
         .attr("y", function(d, i) {
             return 30 + 30*i
         })
-        .style("fill", function(d){return color(d)})
+        .style("fill", function(d){return vc.colorScheme(d)})
+        .on("click", function(d){
+            //console.log("click");
+            vc.confusionClass = d;
+            vc.updateColor(sa.delay);
+        })
+        .on("dblclick", function(d){
+            vc.confusionClass = 0;
+            //console.log("dbl");
+            vc.updateColor(sa.delay);
+        });
 
     svgContainer.selectAll("legendText")
         .data(classNames)

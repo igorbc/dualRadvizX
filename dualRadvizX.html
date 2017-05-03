@@ -49,11 +49,13 @@
         <!--  <script type="text/javascript" src="js/numeric-1.2.6.min.js"></script> -->
 
         <script type="text/javascript" src="js/setupAssistent.js"></script>
+        <script type="text/javascript" src="js/keyHandler.js"></script>
         <script type="text/javascript" src="js/avap.js"></script>
         <script type="text/javascript" src="js/avapContainer.js"></script>
         <script type="text/javascript" src="js/vizContainer.js"></script>
         <script type="text/javascript" src="js/legend.js"></script>
         <script type="text/javascript" src="js/dragManager.js"></script>
+        <script type="text/javascript" src="js/sliderManager.js"></script>
         <script type="text/javascript" src="js/tooltipManager.js"></script>
         <script type="text/javascript" src="js/loadFile.js"></script>
         <script type="text/javascript" src="js/vec.js"></script>
@@ -75,14 +77,11 @@
             var classNames = [];
             var parcoords;
             var csv;
-            var contribSlider;
+            var sliderConfigured;
             var radviz = false;
             var colorAll = true;
             var PI = Math.PI;
             var TWO_PI = PI * 2;
-            var shitfPressed = false;
-            var rotAngle = 5;
-            var delay = 800;
 
             var color = sa.getClassColorScheme();
             svgContainer = sa.getSvgContainer();
@@ -109,8 +108,8 @@
                     vc.acClass.initializeAvApInfo(headersClass, csv, classNames, color);
 
                     if(vc.isRadviz){
-                        vc.acAttr.createPath(delay);
-                        vc.acClass.createPath(delay);
+                        vc.acAttr.createPath(sa.delay);
+                        vc.acClass.createPath(sa.delay);
                     }
                     else{
                         vc.acAttr.createStarCoordLines();
@@ -119,9 +118,9 @@
                     vc.initializeInstGroup(csv);
                     vc.acClass.createAvApGroup();
                     vc.acAttr.createAvApGroup();
-                    vc.acClass.rotate(-TWO_PI/headersAttr.length);
+                    vc.acClass.rotate(-TWO_PI/headersAttr.length, "z", false);
 
-                    vc.updateInst(delay);
+                    vc.updateInst(sa.delay);
 
                     csv = csv.map(function (d) {
                         d.mouseOver = "false";
@@ -133,111 +132,10 @@
                     addSvgLegend(classNames, svgContainer);
                     setupDragBehaviour(vc.acAttr, vc.acClass);
 
-                    if (contribSlider == undefined) {
-                        contribSlider = d3.slider().min(-100).max(100).value(100)
-                                .on("slide", function (evt, value) {
-                                    vc.acClass.contribution = 1 - value / 100;
-                                    vc.acAttr.contribution = 1 + value / 100;
+                    sliderConfigured = configSlider(sliderConfigured);
 
-                                    var cContr = vc.acClass.contribution / (vc.acClass.contribution + vc.acAttr.contribution);
-                                    var aContr = vc.acAttr.contribution / (vc.acClass.contribution + vc.acAttr.contribution);
-
-                                    vc.acAttr.normalizedContribution = aContr;
-                                    vc.acClass.normalizedContribution = cContr;
-
-                                    d3.select("#contribution")
-                                            .text("Class: " + Math.round(cContr * 100) + "% / Attributes: " + Math.round(aContr * 100) + "%");
-
-                                    /*
-                                    if(vc.acAttr.normalizedContribution > 0.5){
-                                        vc.acAttr.bringAvApsToFront();
-                                    }
-                                    else{
-                                        vc.acClass.bringAvApsToFront();
-*/
-                                    vc.acAttr.updateAvApPositionOnScreen();
-                                    vc.acClass.updateAvApPositionOnScreen();
-                                    vc.updateInst();
-                                });
-
-                        d3.select("#classContribSlider").call(contribSlider);
-                    }
-
-                    // saves the state of Shift key
-                    d3.select("body")
-                            .on("keydown", function () {
-                                shitfPressed = d3.event.shiftKey;
-                                d3.event.preventDefault();
-                                switch(d3.event.code){
-                                    case "KeyC":
-                                        vc.acAttr.instGroup.selectAll(".selected").classed("selected", false);
-                                        console.log("c");
-                                        break;
-
-                                    case "ArrowLeft":
-                                        if(!vc.isRadviz){
-                                            if(!d3.event.altKey)
-                                                vc.acAttr.rotate(deg2rad(rotAngle), "y");
-                                            if(!d3.event.shiftKey)
-                                                vc.acClass.rotate(deg2rad(rotAngle), "y");
-                                        }
-                                        break;
-
-                                    case "ArrowRight":
-                                        if(!vc.isRadviz){
-                                            if(!d3.event.altKey)
-                                                vc.acAttr.rotate(deg2rad(-rotAngle), "y");
-                                            if(!d3.event.shiftKey)
-                                                vc.acClass.rotate(deg2rad(-rotAngle), "y");
-                                        }
-                                        break;
-                                    case "ArrowUp":
-                                        if(!vc.isRadviz){
-                                            if(!d3.event.altKey)
-                                                vc.acAttr.rotate(deg2rad(rotAngle), "x");
-                                            if(!d3.event.shiftKey)
-                                                vc.acClass.rotate(deg2rad(rotAngle), "x");
-                                        }
-                                        /*
-                                        else{
-                                            vc.acAttr.r+=2;
-                                            vc.acAttr.updatePath();
-                                            vc.acAttr.alignAvApsWithRadviz();
-                                            vc.acAttr.updateAvApPositionOnScreen();
-                                            vc.updateInst();
-                                        }
-                                        */
-                                        break;
-
-                                    case "ArrowDown":
-                                        if(!vc.isRadviz){
-                                            if(!d3.event.altKey)
-                                                vc.acAttr.rotate(deg2rad(-rotAngle), "x");
-                                            if(!d3.event.shiftKey)
-                                                vc.acClass.rotate(deg2rad(-rotAngle), "x");
-                                        }
-                                        break;
-                                    case "KeyR":
-                                        vc.toggleRvSc();
-                                        break;
-                                    /*
-                                    case "":
-                                        rotAngle+=5;
-                                        console.log("rot angle: " + rotAngle);
-
-                                    case "":
-                                        rotAngle-=5;
-                                        console.log("rot angle: " + rotAngle);
-                                    */
-                                }
-                            })
-                            .on("keyup", function () {
-                                shitfPressed = d3.event.shiftKey;
-                            })
-
-
+                    handleKeys();
                 });
-
             }
         </script>
     </body>

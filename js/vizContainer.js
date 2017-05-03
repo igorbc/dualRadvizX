@@ -116,7 +116,7 @@ function VizContainer(){
         }
     }
 
-    this.toggleRvSc = function(){
+    this.toggleRvSc = function(delay = 0){
         this.isRadviz = !this.isRadviz;
         if(this.isRadviz){
             vc.acAttr.avapLineGroup.selectAll("line")

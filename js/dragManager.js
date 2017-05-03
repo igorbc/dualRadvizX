@@ -47,7 +47,7 @@ createDragBehaviour = function(ac, circle, i) {
 
     avap[i].setNewPos(newPos);
 
-    if(shitfPressed) {
+    if(sa.shitfPressed) {
         for(var avapCount = 0; avapCount < avap.length; avapCount++) {
             if(avap[avapCount].key != avap[i].key)
                 avap[avapCount].rotate(arcDiff);

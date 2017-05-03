@@ -26,6 +26,10 @@ function SetupAssistent(){
     this.vizAttrColor = "mediumSlateBlue";
     this.vizClassColor = "coral";
 
+    this.shitfPressed = false;
+    this.rotAngle = 5;
+    this.delay = 800;
+
     this.setBasicVizContainerInfo = function(vc){
         vc.center = [this.svgWidth/2, this.svgHeight/2, 0];
         vc.r = this.innerRadvizRadius;

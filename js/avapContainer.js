@@ -160,15 +160,7 @@ function AvApContainer(){
             .attr("stroke","black")
             .attr("stroke-width", 2)
             .attr("fill", function(d){ return d.color;})
-            .attr("opacity", this.contribution)
-            .on("dblclick", function(d) {
-                if(d.color == "white") d.color = "gray";
-                else d.color = "white";
-                d.inverted = !d.inverted;
-                console.log(d.color + " " + d.inverted + " " + d.key);
-                d3.select(this).style("fill", d.color);
-                vc.updateInst(1000);
-            });
+            .attr("opacity", this.contribution);
 
         this.avapLabelGroup = svgContainer.append("g");
         this.avapLabelGroup.selectAll("text")
@@ -184,6 +176,19 @@ function AvApContainer(){
             .style("font-size", 12)
             .attr("text-anchor", "middle")
         ;
+    }
+
+    // right now this behaviour is to make the AV-APs invertible
+    this.addDoubleClickBehaviour = function(delay = 0){
+        this.avapGroup.selectAll("circle")
+        .on("dblclick", function(d) {
+            if(d.color == "white") d.color = "gray";
+            else d.color = "white";
+            d.inverted = !d.inverted;
+            console.log(d.color + " " + d.inverted + " " + d.key);
+            d3.select(this).style("fill", d.color);
+            vc.updateInst(delay);
+        }); 
     }
 
     this.updateAvApPositionOnScreen = function(delay = 0){
@@ -215,13 +220,14 @@ function AvApContainer(){
 
     }
 
-    this.rotate = function(angle, axis = "z"){
+    this.rotate = function(angle, axis = "z", updateInstantly = true){
         var avap = this.avap;
         for(var avapCount = 0; avapCount < avap.length; avapCount++) {
             avap[avapCount].rotate(angle, axis);
         }
         this.updateAvApPositionOnScreen();
-        this.vc.updateInst();
+        if(updateInstantly)
+            this.vc.updateInst();
     }
 
     this.bringAvApsToFront = function(){
